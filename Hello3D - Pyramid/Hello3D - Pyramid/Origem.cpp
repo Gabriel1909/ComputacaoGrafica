@@ -36,7 +36,7 @@ const GLchar* fragmentShaderSource = "#version 400\n"
 "color = finalColor;\n"
 "}\n\0";
 
-bool rotateX=false, rotateY=false, rotateZ=false;
+char rotateTeste;
 
 int main() {
 
@@ -85,22 +85,54 @@ int main() {
 		glPointSize(20);
 
 		float angle = (GLfloat)glfwGetTime();
+		float angulo = glm::radians(90.0f);
 
 		model = glm::mat4(1); 
-		if (rotateX) {
-			model = glm::rotate(model, angle, glm::vec3(1.0f, 0.0f, 0.0f));	
-		} else if (rotateY) {
-			model = glm::rotate(model, angle, glm::vec3(0.0f, 1.0f, 0.0f));
-		} else if (rotateZ) {
-			model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+
+		switch (rotateTeste) {
+			case 'X':
+				model = glm::rotate(model, angle, glm::vec3(1.0f, 0.0f, 0.0f));
+				break;
+
+			case 'Y':
+				model = glm::rotate(model, angle, glm::vec3(0.0f, 1.0f, 0.0f));
+				break;
+
+			case 'Z':
+				model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+				break;
+
+			case 'W':
+				model = glm::rotate(model, angle, glm::vec3(1.0f, 0.0f, 1.0f));
+				break;
+
+			case '1':
+				model = glm::rotate(model, angulo, glm::vec3(1.0f, 0.0f, 0.0f));
+				break;
+
+			case '2':
+				model = glm::rotate(model, angulo * 2, glm::vec3(1.0f, 0.0f, 0.0f));
+				break;
+
+			case '3':
+				model = glm::rotate(model, angulo * 3, glm::vec3(1.0f, 0.0f, 0.0f));
+				break;
+
+			case '4':
+				model = glm::rotate(model, angulo, glm::vec3(0.0f, 1.0f, 0.0f));
+				break;
+
+			case '5':
+				model = glm::rotate(model, angulo*3, glm::vec3(0.0f, 1.0f, 0.0f));
+				break;
 		}
 
 		glUniformMatrix4fv(modelLoc, 1, FALSE, glm::value_ptr(model));
 		
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 18);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 		
-		glDrawArrays(GL_POINTS, 0, 18);
+		glDrawArrays(GL_POINTS, 0, 36);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
@@ -113,26 +145,53 @@ int main() {
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
 
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, GL_TRUE);
-	}
+	if (action == GLFW_PRESS) {
+	
+		switch (key) {
 
-	if (key == GLFW_KEY_X && action == GLFW_PRESS) {
-		rotateX = true;
-		rotateY = false;
-		rotateZ = false;
-	}
+			case GLFW_KEY_ESCAPE:
+				glfwSetWindowShouldClose(window, GL_TRUE);
+				break;
 
-	if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
-		rotateX = false;
-		rotateY = true;
-		rotateZ = false;
-	}
+			case GLFW_KEY_X:
+				rotateTeste = 'X';
+				break;
 
-	if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
-		rotateX = false;
-		rotateY = false;
-		rotateZ = true;
+			case GLFW_KEY_Y:
+				rotateTeste = 'Y';
+				break;
+
+			case GLFW_KEY_Z:
+				rotateTeste = 'Z';
+				break;
+
+			case GLFW_KEY_W:
+				rotateTeste = 'W';
+				break;
+
+			case GLFW_KEY_1:
+				rotateTeste = '1';
+				break;
+
+			case GLFW_KEY_2:
+				rotateTeste = '2';
+				break;
+
+			case GLFW_KEY_3:
+				rotateTeste = '3';
+				break;
+
+			case GLFW_KEY_4:
+				rotateTeste = '4';
+				break;
+
+			case GLFW_KEY_5:
+				rotateTeste = '5';
+				break;
+
+			default:
+				rotateTeste = NULL;
+		}
 	}
 }
 
@@ -183,32 +242,58 @@ int setupGeometry() {
 
 	GLfloat vertices[] = {
 
-		//Base da pirâmide: 2 triângulos
-		//x    y    z    r    g    b
-		-0.5, -0.5, -0.5, 1.0, 1.0, 0.0,
-		-0.5, -0.5, 0.5, 0.0, 1.0, 1.0,
-		 0.5, -0.5, -0.5, 1.0, 0.0, 1.0,
+		 //Base
+		 -0.5, -0.5, -0.5, 1.0, 0.0, 1.0,
+		 -0.5, -0.5, 0.5, 1.0, 0.0, 1.0,
+		  0.5, -0.5, -0.5, 1.0, 0.0, 1.0,
 
-		-0.5, -0.5, 0.5, 1.0, 1.0, 0.0,
-		 0.5, -0.5, 0.5, 0.0, 1.0, 1.0,
-		 0.5, -0.5, -0.5, 1.0, 0.0, 1.0,
+		 -0.5, -0.5, 0.5, 1.0, 0.0, 1.0,
+		  0.5, -0.5, 0.5, 1.0, 0.0, 1.0,
+		  0.5, -0.5, -0.5, 1.0, 0.0, 1.0,
 
-		 //
+		 //Topo
+		 -0.5, 0.5, -0.5, 0.0, 0.0, 1.0,
+		 -0.5, 0.5, 0.5, 0.0, 0.0, 1.0,
+		  0.5, 0.5, -0.5, 0.0, 0.0, 1.0,
 
-		-0.5, -0.5, -0.5, 1.0, 1.0, 0.0,
-		 0.0, 0.5,  0.0, 1.0, 1.0, 0.0,
-		 0.5, -0.5, -0.5, 1.0, 1.0, 0.0,
+		 -0.5, 0.5, 0.5, 0.0, 0.0, 1.0,
+		  0.5, 0.5, 0.5, 0.0, 0.0, 1.0,
+		  0.5, 0.5, -0.5, 0.0, 0.0, 1.0,
 
-		-0.5, -0.5, -0.5, 1.0, 0.0, 1.0,
-		 0.0,  0.5, 0.0, 1.0, 0.0, 1.0,
-		-0.5, -0.5, 0.5, 1.0, 0.0, 1.0,
-
+		 //Frente
 		 -0.5, -0.5, 0.5, 1.0, 1.0, 0.0,
-		  0.0,  0.5,  0.0, 1.0, 1.0, 0.0,
+		 -0.5,  0.5,  0.5, 1.0, 1.0, 0.0,
 		  0.5, -0.5, 0.5, 1.0, 1.0, 0.0,
 
+		 -0.5,  0.5, 0.5, 1.0, 1.0, 0.0,
+		  0.5,  0.5,  0.5, 1.0, 1.0, 0.0,
+		  0.5, -0.5, 0.5, 1.0, 1.0, 0.0,
+
+		  //Trás
+		 -0.5, -0.5, -0.5, 1.0, 0.0, 0.0,
+		 -0.5,  0.5, -0.5, 1.0, 0.0, 0.0,
+		  0.5, -0.5, -0.5, 1.0, 0.0, 0.0,
+
+		 -0.5,  0.5, -0.5, 1.0, 0.0, 0.0,
+		  0.5,  0.5, -0.5, 1.0, 0.0, 0.0,
+		  0.5, -0.5, -0.5, 1.0, 0.0, 0.0,
+
+		  //Esquerda
+		 -0.5, -0.5, 0.5, 0.0, 1.0, 0.0,
+		 -0.5, 0.5,  0.5, 0.0, 1.0, 0.0,
+		 -0.5, -0.5, -0.5, 0.0, 1.0, 0.0,
+
+		 -0.5, 0.5, 0.5, 0.0, 1.0, 0.0,
+		 -0.5, 0.5, -0.5, 0.0, 1.0, 0.0,
+		 -0.5, -0.5, -0.5, 0.0, 1.0, 0.0,
+
+		  //Direita
 		  0.5, -0.5, 0.5, 0.0, 1.0, 1.0,
-		  0.0,  0.5,  0.0, 0.0, 1.0, 1.0,
+		  0.5, 0.5,  0.5, 0.0, 1.0, 1.0,
+		  0.5, -0.5, -0.5, 0.0, 1.0, 1.0,
+
+		  0.5, 0.5, 0.5, 0.0, 1.0, 1.0,
+		  0.5, 0.5, -0.5, 0.0, 1.0, 1.0,
 		  0.5, -0.5, -0.5, 0.0, 1.0, 1.0,
 	};
 
