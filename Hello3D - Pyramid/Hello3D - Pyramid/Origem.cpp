@@ -12,31 +12,48 @@ using namespace std;
 
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
 int setupShader();
 int setupGeometry();
 
 const GLuint WIDTH = 1000, HEIGHT = 1000;
 
-const GLchar* vertexShaderSource = "#version 400\n"
-"layout (location = 0) in vec3 position;\n"
-"layout (location = 1) in vec3 color;\n"
-"uniform mat4 model;\n"
-"out vec4 finalColor;\n"
-"void main()\n"
-"{\n"
-"gl_Position = model * vec4(position, 1.0);\n"
-"finalColor = vec4(color, 1.0);\n"
-"}\0";
+const GLchar* vertexShaderSource = 
+	"#version 400\n"
+	"layout (location = 0) in vec3 position;\n"
+	"layout (location = 1) in vec3 color;\n"
+	"uniform mat4 model;\n"
+	"uniform mat4 view;\n"
+	"uniform mat4 projection;\n"
 
-const GLchar* fragmentShaderSource = "#version 400\n"
-"in vec4 finalColor;\n"
-"out vec4 color;\n"
-"void main()\n"
-"{\n"
-"color = finalColor;\n"
-"}\n\0";
+	"out vec4 finalColor;\n"
+	"void main() {\n"
+		"gl_Position = projection * view * model * vec4(position, 1.0f);\n"
+		"finalColor = vec4(color, 1.0);\n"
+	"}\0";
 
-char rotateTeste;
+const GLchar* fragmentShaderSource = 
+	"#version 400\n"
+	"in vec4 finalColor;\n"
+	"out vec4 color;\n"
+	"void main() {\n"
+		"color = finalColor;\n"
+	"}\n\0";
+
+char rotateChar;
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+float deltaTime;
+float lastFrame;
+float lastX;
+float lastY;
+float yaw;
+float pitch;
+float fov = 45.0f;
+bool firstMouse = true;
 
 int main() {
 
@@ -46,6 +63,11 @@ int main() {
 	glfwMakeContextCurrent(window);
 
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	firstMouse = false;
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cout << "Failed to initialize GLAD" << std::endl;
@@ -66,11 +88,8 @@ int main() {
 
 	glUseProgram(shaderID);
 
-	glm::mat4 model = glm::mat4(1);
-	GLint modelLoc = glGetUniformLocation(shaderID, "model");
-
-	model = glm::rotate(model, /*(GLfloat)glfwGetTime()*/glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	glUniformMatrix4fv(modelLoc, 1, FALSE, glm::value_ptr(model));
+	GLint viewLoc = glGetUniformLocation(shaderID, "view");
+	GLint projLoc = glGetUniformLocation(shaderID, "projection");
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -87,9 +106,26 @@ int main() {
 		float angle = (GLfloat)glfwGetTime();
 		float angulo = glm::radians(90.0f);
 
-		model = glm::mat4(1); 
+		glm::mat4 model = glm::mat4(1);
 
-		switch (rotateTeste) {
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		glm::vec3 front;
+		front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
+		front.y = sin(glm::radians(pitch));
+		front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+		cameraFront = glm::normalize(front);
+
+		glm::mat4 view = glm::lookAt(cameraPos,// Posição (ponto da camera) 
+			cameraPos + cameraFront,// Target (ponto que a camera está olhando)
+			cameraUp); // Up (vetor)
+
+		glm::mat4 projection = glm::perspective(fov, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
+
+
+		switch (rotateChar) {
 			case 'X':
 				model = glm::rotate(model, angle, glm::vec3(1.0f, 0.0f, 0.0f));
 				break;
@@ -100,10 +136,6 @@ int main() {
 
 			case 'Z':
 				model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
-				break;
-
-			case 'W':
-				model = glm::rotate(model, angle, glm::vec3(1.0f, 0.0f, 1.0f));
 				break;
 
 			case '1':
@@ -123,12 +155,15 @@ int main() {
 				break;
 
 			case '5':
-				model = glm::rotate(model, angulo*3, glm::vec3(0.0f, 1.0f, 0.0f));
+				model = glm::rotate(model, angulo * 3, glm::vec3(0.0f, 1.0f, 0.0f));
 				break;
 		}
 
+		GLint modelLoc = glGetUniformLocation(shaderID, "model");
 		glUniformMatrix4fv(modelLoc, 1, FALSE, glm::value_ptr(model));
-		
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		
@@ -147,6 +182,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 	if (action == GLFW_PRESS) {
 	
+		float cameraSpeed = 10.5f * deltaTime;
+
 		switch (key) {
 
 			case GLFW_KEY_ESCAPE:
@@ -154,45 +191,97 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 				break;
 
 			case GLFW_KEY_X:
-				rotateTeste = 'X';
+				rotateChar = 'X';
 				break;
 
 			case GLFW_KEY_Y:
-				rotateTeste = 'Y';
+				rotateChar = 'Y';
 				break;
 
 			case GLFW_KEY_Z:
-				rotateTeste = 'Z';
+				rotateChar = 'Z';
 				break;
 
 			case GLFW_KEY_W:
-				rotateTeste = 'W';
+				cameraPos += cameraSpeed * cameraFront;
+				break;
+
+			case GLFW_KEY_S:
+				cameraPos -= cameraSpeed * cameraFront;
+				break;
+
+			case GLFW_KEY_A:
+				cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+				break;
+
+			case GLFW_KEY_D:
+				cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 				break;
 
 			case GLFW_KEY_1:
-				rotateTeste = '1';
+				rotateChar = '1';
 				break;
 
 			case GLFW_KEY_2:
-				rotateTeste = '2';
+				rotateChar = '2';
 				break;
 
 			case GLFW_KEY_3:
-				rotateTeste = '3';
+				rotateChar = '3';
 				break;
 
 			case GLFW_KEY_4:
-				rotateTeste = '4';
+				rotateChar = '4';
 				break;
 
 			case GLFW_KEY_5:
-				rotateTeste = '5';
+				rotateChar = '5';
 				break;
 
 			default:
-				rotateTeste = NULL;
+				rotateChar = NULL;
 		}
 	}
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+	if (firstMouse) {
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
+	lastX = xpos;
+	lastY = ypos;
+	float sensitivity = 0.05;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw += xoffset;
+	pitch += yoffset;
+
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	glm::vec3 front;
+	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front.y = sin(glm::radians(pitch));
+	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraFront = glm::normalize(front);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+	if (fov >= 1.0f && fov <= 45.0f)
+		fov -= yoffset*0.1;
+	if (fov <= 1.0f)
+		fov = 1.0f;
+	if (fov >= 45.0f)
+		fov = 45.0f;
 }
 
 int setupShader() {
