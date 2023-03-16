@@ -46,12 +46,7 @@ char rotateChar;
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-float deltaTime;
-float lastFrame;
-float lastX;
-float lastY;
-float yaw;
-float pitch;
+float deltaTime, lastFrame, lastX, lastY, yaw, pitch;
 float fov = 45.0f;
 bool firstMouse = true;
 
@@ -59,7 +54,7 @@ int main() {
 
 	glfwInit();
 
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Ola Triangulo!", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Ola Cubo!", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	glfwSetKeyCallback(window, key_callback);
@@ -67,7 +62,6 @@ int main() {
 	glfwSetScrollCallback(window, scroll_callback);
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	firstMouse = false;
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cout << "Failed to initialize GLAD" << std::endl;
@@ -160,7 +154,7 @@ int main() {
 		}
 
 		GLint modelLoc = glGetUniformLocation(shaderID, "model");
-		glUniformMatrix4fv(modelLoc, 1, FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
@@ -179,68 +173,65 @@ int main() {
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
-
-	if (action == GLFW_PRESS) {
 	
-		float cameraSpeed = 10.5f * deltaTime;
+	float cameraSpeed = 10.0f * deltaTime;
 
-		switch (key) {
+	switch (key) {
 
-			case GLFW_KEY_ESCAPE:
-				glfwSetWindowShouldClose(window, GL_TRUE);
-				break;
+		case GLFW_KEY_ESCAPE:
+			glfwSetWindowShouldClose(window, GL_TRUE);
+			break;
 
-			case GLFW_KEY_X:
-				rotateChar = 'X';
-				break;
+		case GLFW_KEY_X:
+			rotateChar = 'X';
+			break;
 
-			case GLFW_KEY_Y:
-				rotateChar = 'Y';
-				break;
+		case GLFW_KEY_Y:
+			rotateChar = 'Y';
+			break;
 
-			case GLFW_KEY_Z:
-				rotateChar = 'Z';
-				break;
+		case GLFW_KEY_Z:
+			rotateChar = 'Z';
+			break;
 
-			case GLFW_KEY_W:
-				cameraPos += cameraSpeed * cameraFront;
-				break;
+		case GLFW_KEY_W:
+			cameraPos += cameraSpeed * cameraFront;
+			break;
 
-			case GLFW_KEY_S:
-				cameraPos -= cameraSpeed * cameraFront;
-				break;
+		case GLFW_KEY_S:
+			cameraPos -= cameraSpeed * cameraFront;
+			break;
 
-			case GLFW_KEY_A:
-				cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-				break;
+		case GLFW_KEY_A:
+			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+			break;
 
-			case GLFW_KEY_D:
-				cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-				break;
+		case GLFW_KEY_D:
+			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+			break;
 
-			case GLFW_KEY_1:
-				rotateChar = '1';
-				break;
+		case GLFW_KEY_1:
+			rotateChar = '1';
+			break;
 
-			case GLFW_KEY_2:
-				rotateChar = '2';
-				break;
+		case GLFW_KEY_2:
+			rotateChar = '2';
+			break;
 
-			case GLFW_KEY_3:
-				rotateChar = '3';
-				break;
+		case GLFW_KEY_3:
+			rotateChar = '3';
+			break;
 
-			case GLFW_KEY_4:
-				rotateChar = '4';
-				break;
+		case GLFW_KEY_4:
+			rotateChar = '4';
+			break;
 
-			case GLFW_KEY_5:
-				rotateChar = '5';
-				break;
+		case GLFW_KEY_5:
+			rotateChar = '5';
+			break;
 
-			default:
-				rotateChar = NULL;
-		}
+		default:
+			rotateChar = NULL;
 	}
 }
 
