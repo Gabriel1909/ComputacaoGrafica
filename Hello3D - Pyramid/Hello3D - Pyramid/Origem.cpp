@@ -20,7 +20,7 @@ int setupGeometry();
 const GLuint WIDTH = 1000, HEIGHT = 1000;
 
 char rotateChar;
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 5.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 float deltaTime, lastFrame, lastX, lastY, yaw = -90, pitch;
@@ -126,9 +126,9 @@ int main() {
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 42);
+		glDrawArrays(GL_TRIANGLES, 0, 66);
 		
-		glDrawArrays(GL_POINTS, 0, 42);
+		glDrawArrays(GL_POINTS, 0, 66);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
@@ -141,7 +141,7 @@ int main() {
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
 	
-	float cameraSpeed = 10.0f * deltaTime;
+	float cameraSpeed = 50.0f * deltaTime;
 
 	switch (key) {
 
@@ -301,14 +301,53 @@ int setupGeometry() {
 		  0.5, 0.5, -0.5, 0.0, 1.0, 1.0,
 		  0.5, -0.5, -0.5, 0.0, 1.0, 1.0,
 
-		  //Chao
-		 -2.5, -0.5, -2.5, 0.8, 0.8, 0.8,
-		 -2.5, -0.5, 2.5, 0.8, 0.8, 0.8,
-		  2.5, -0.5, -2.5, 0.8, 0.8, 0.8,
 
-		 -2.5, -0.5, 2.5, 0.8, 0.8, 0.8,
-		  2.5, -0.5, 2.5, 0.8, 0.8, 0.8,
-		  2.5, -0.5, -2.5, 0.8, 0.8, 0.8,
+		  //Terreno
+
+		  //Chao
+		 -5.5, -0.5, -5.5, 0.8, 0.8, 0.8,
+		 -5.5, -0.5, 5.5, 0.8, 0.8, 0.8,
+		  5.5, -0.5, -5.5, 0.8, 0.8, 0.8,
+
+		 -5.5, -0.5, 5.5, 0.8, 0.8, 0.8,
+		  5.5, -0.5, 5.5, 0.8, 0.8, 0.8,
+		  5.5, -0.5, -5.5, 0.8, 0.8, 0.8,
+
+		 //Topo
+		 -5.5, 10.5, -5.5, 0.7, 0.7, 0.7,
+		 -5.5, 10.5, 5.5, 0.7, 0.7, 0.7,
+		  5.5, 10.5, -5.5, 0.7, 0.7, 0.7,
+
+		 -5.5, 10.5, 5.5, 0.7, 0.7, 0.7,
+		  5.5, 10.5, 5.5, 0.7, 0.7, 0.7,
+		  5.5, 10.5, -5.5, 0.7, 0.7, 0.7,
+
+		  //Esquerda
+		 -5.5, -0.5, 5.5, 0.6, 0.6, 0.6,
+		 -5.5, 10.5,  5.5, 0.6, 0.6, 0.6,
+		 -5.5, -0.5, -5.5, 0.6, 0.6, 0.6,
+
+		 -5.5, 10.5, 5.5, 0.6, 0.6, 0.6,
+		 -5.5, 10.5, -5.5, 0.6, 0.6, 0.6,
+		 -5.5, -0.5, -5.5, 0.6, 0.6, 0.6,
+
+		 //Direita
+		 5.5, -0.5, 5.5, 0.5, 0.5, 0.5,
+		 5.5, 10.5,  5.5, 0.5, 0.5, 0.5,
+		 5.5, -0.5, -5.5, 0.5, 0.5, 0.5,
+
+		  5.5, 10.5, 5.5, 0.5, 0.5, 0.5,
+		  5.5, 10.5, -5.5, 0.5, 0.5, 0.5,
+		  5.5, -0.5, -5.5, 0.5, 0.5, 0.5,
+
+		  //Trás
+		 -5.5, -0.5, -5.5, 0.4, 0.4, 0.4,
+		 -5.5,  10.5, -5.5, 0.4, 0.4, 0.4,
+		  5.5, -0.5, -5.5, 0.4, 0.4, 0.4,
+
+		 -5.5,  10.5, -5.5, 0.4, 0.4, 0.4,
+		  5.5,  10.5, -5.5, 0.4, 0.4, 0.4,
+		  5.5, -0.5, -5.5, 0.4, 0.4, 0.4,
 	};
 
 	GLuint VBO, VAO;
