@@ -9,46 +9,24 @@ using namespace std;
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
+#include "Shader.h"
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-int setupShader();
 int setupGeometry();
 
 const GLuint WIDTH = 1000, HEIGHT = 1000;
-
-const GLchar* vertexShaderSource = 
-	"#version 400\n"
-	"layout (location = 0) in vec3 position;\n"
-	"layout (location = 1) in vec3 color;\n"
-	"uniform mat4 model;\n"
-	"uniform mat4 view;\n"
-	"uniform mat4 projection;\n"
-
-	"out vec4 finalColor;\n"
-	"void main() {\n"
-		"gl_Position = projection * view * model * vec4(position, 1.0f);\n"
-		"finalColor = vec4(color, 1.0);\n"
-	"}\0";
-
-const GLchar* fragmentShaderSource = 
-	"#version 400\n"
-	"in vec4 finalColor;\n"
-	"out vec4 color;\n"
-	"void main() {\n"
-		"color = finalColor;\n"
-	"}\n\0";
 
 char rotateChar;
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-float deltaTime, lastFrame, lastX, lastY, yaw, pitch;
+float deltaTime, lastFrame, lastX, lastY, yaw = -90, pitch;
 float fov = 45.0f;
 bool firstMouse = true;
+
 
 int main() {
 
@@ -58,7 +36,9 @@ int main() {
 	glfwMakeContextCurrent(window);
 
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPos(window, WIDTH / 2, HEIGHT / 2);
 	glfwSetCursorPosCallback(window, mouse_callback);
+
 	glfwSetScrollCallback(window, scroll_callback);
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -67,23 +47,18 @@ int main() {
 		std::cout << "Failed to initialize GLAD" << std::endl;
 	}
 
-	const GLubyte* renderer = glGetString(GL_RENDERER);
-	const GLubyte* version = glGetString(GL_VERSION);
-	cout << "Renderer: " << renderer << endl;
-	cout << "OpenGL version supported " << version << endl;
-
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
 	glViewport(0, 0, width, height);
 
-	GLuint shaderID = setupShader();
+	Shader shader("Hello3D.vs", "Hello3D.fs");
 
 	GLuint VAO = setupGeometry();
 
-	glUseProgram(shaderID);
+	glUseProgram(shader.ID);
 
-	GLint viewLoc = glGetUniformLocation(shaderID, "view");
-	GLint projLoc = glGetUniformLocation(shaderID, "projection");
+	GLint viewLoc = glGetUniformLocation(shader.ID, "view");
+	GLint projLoc = glGetUniformLocation(shader.ID, "projection");
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -97,8 +72,7 @@ int main() {
 		glLineWidth(10);
 		glPointSize(20);
 
-		float angle = (GLfloat)glfwGetTime();
-		float angulo = glm::radians(90.0f);
+		float angle = (GLfloat) glfwGetTime();
 
 		glm::mat4 model = glm::mat4(1);
 
@@ -106,18 +80,11 @@ int main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		glm::vec3 front;
-		front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-		front.y = sin(glm::radians(pitch));
-		front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
-		cameraFront = glm::normalize(front);
-
-		glm::mat4 view = glm::lookAt(cameraPos,// Posição (ponto da camera) 
-			cameraPos + cameraFront,// Target (ponto que a camera está olhando)
-			cameraUp); // Up (vetor)
+		glm::mat4 view = glm::lookAt(cameraPos,
+			cameraPos + cameraFront,
+			cameraUp);
 
 		glm::mat4 projection = glm::perspective(fov, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
-
 
 		switch (rotateChar) {
 			case 'X':
@@ -133,35 +100,35 @@ int main() {
 				break;
 
 			case '1':
-				model = glm::rotate(model, angulo, glm::vec3(1.0f, 0.0f, 0.0f));
+				model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 				break;
 
 			case '2':
-				model = glm::rotate(model, angulo * 2, glm::vec3(1.0f, 0.0f, 0.0f));
+				model = glm::rotate(model, glm::radians(90.0f) * 2, glm::vec3(1.0f, 0.0f, 0.0f));
 				break;
 
 			case '3':
-				model = glm::rotate(model, angulo * 3, glm::vec3(1.0f, 0.0f, 0.0f));
+				model = glm::rotate(model, glm::radians(90.0f) * 3, glm::vec3(1.0f, 0.0f, 0.0f));
 				break;
 
 			case '4':
-				model = glm::rotate(model, angulo, glm::vec3(0.0f, 1.0f, 0.0f));
+				model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 				break;
 
 			case '5':
-				model = glm::rotate(model, angulo * 3, glm::vec3(0.0f, 1.0f, 0.0f));
+				model = glm::rotate(model, glm::radians(90.0f) * 3, glm::vec3(0.0f, 1.0f, 0.0f));
 				break;
 		}
 
-		GLint modelLoc = glGetUniformLocation(shaderID, "model");
+		GLint modelLoc = glGetUniformLocation(shader.ID, "model");
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glDrawArrays(GL_TRIANGLES, 0, 42);
 		
-		glDrawArrays(GL_POINTS, 0, 36);
+		glDrawArrays(GL_POINTS, 0, 42);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
@@ -246,6 +213,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	float yoffset = lastY - ypos;
 	lastX = xpos;
 	lastY = ypos;
+
 	float sensitivity = 0.05;
 	xoffset *= sensitivity;
 	yoffset *= sensitivity;
@@ -273,49 +241,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 		fov = 1.0f;
 	if (fov >= 45.0f)
 		fov = 45.0f;
-}
-
-int setupShader() {
-
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-
-	GLint success;
-	GLchar infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-
-	if (!success) {
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-
-	if (!success) {
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	GLuint shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-	}
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-
-	return shaderProgram;
 }
 
 int setupGeometry() {
@@ -375,6 +300,15 @@ int setupGeometry() {
 		  0.5, 0.5, 0.5, 0.0, 1.0, 1.0,
 		  0.5, 0.5, -0.5, 0.0, 1.0, 1.0,
 		  0.5, -0.5, -0.5, 0.0, 1.0, 1.0,
+
+		  //Chao
+		 -2.5, -0.5, -2.5, 0.8, 0.8, 0.8,
+		 -2.5, -0.5, 2.5, 0.8, 0.8, 0.8,
+		  2.5, -0.5, -2.5, 0.8, 0.8, 0.8,
+
+		 -2.5, -0.5, 2.5, 0.8, 0.8, 0.8,
+		  2.5, -0.5, 2.5, 0.8, 0.8, 0.8,
+		  2.5, -0.5, -2.5, 0.8, 0.8, 0.8,
 	};
 
 	GLuint VBO, VAO;

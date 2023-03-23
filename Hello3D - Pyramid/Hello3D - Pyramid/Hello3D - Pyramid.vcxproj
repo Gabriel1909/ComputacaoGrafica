@@ -21,6 +21,14 @@
   <ItemGroup>
     <ClCompile Include="..\..\Common\src\glad.c" />
     <ClCompile Include="Origem.cpp" />
+    <ClCompile Include="Shader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Shader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Hello3D.fs" />
+    <None Include="Hello3D.vs" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
