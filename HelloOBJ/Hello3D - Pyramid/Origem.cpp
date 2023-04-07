@@ -68,7 +68,7 @@ int main() {
 	Shader shader("Hello3D.vs", "Hello3D.fs");
 
 	int nVertices;
-	GLuint VAO = loadSimpleOjb("C:/Users/gabriel28/Documents/projetos/ComputacaoGrafica/Common", nVertices);
+	GLuint VAO = loadSimpleOjb("../../Common/3D_Models/cube.obj", nVertices);
 
 	glUseProgram(shader.ID);
 
@@ -316,7 +316,7 @@ int loadSimpleOjb(string filePath, int& nVertices) {
 
 	inputFile.close();
 
-	nVertices = vertBuffer.size / 6;
+	nVertices = vertBuffer.size() / 6;
 
 	GLuint VBO, VAO;
 
@@ -324,7 +324,7 @@ int loadSimpleOjb(string filePath, int& nVertices) {
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-	glBufferData(GL_ARRAY_BUFFER, vertBuffer.size * sizeof(GLfloat), vertBuffer.data, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertBuffer.size() * sizeof(GLfloat), vertBuffer.data(), GL_STATIC_DRAW);
 
 	glGenVertexArrays(1, &VAO);
 
