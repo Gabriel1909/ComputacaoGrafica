@@ -46,7 +46,7 @@ int main() {
 
 	glfwInit();
 
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Ola obj!", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Trabalho Grau A", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	glfwSetKeyCallback(window, key_callback);
@@ -68,7 +68,7 @@ int main() {
 	Shader shader("Hello3D.vs", "Hello3D.fs");
 
 	int nVertices;
-	GLuint VAO = loadSimpleOjb("../../Common/3D_Models/cube.obj", nVertices);
+	GLuint VAO = loadSimpleOjb("../../Common/3D_Models/pikachu.obj", nVertices);
 
 	glUseProgram(shader.ID);
 
@@ -141,9 +141,7 @@ int main() {
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 66);
-		
-		glDrawArrays(GL_POINTS, 0, 66);
+		glDrawArrays(GL_TRIANGLES, 0, nVertices);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
