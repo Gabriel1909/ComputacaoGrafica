@@ -82,6 +82,10 @@ public: unsigned int ID;
           glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
       }
 
+      void setVec3(const std::string& name, float v1, float v2, float v3) const {
+          glUniform3f(glGetUniformLocation(ID, name.c_str()), v1, v2, v3);
+      }
+
 private: void checkCompileErrors(unsigned int shader, std::string type) {
     int success;
     char infoLog[1024];

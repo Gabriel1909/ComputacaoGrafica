@@ -25,7 +25,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-int setupGeometry();
 int loadSimpleOjb(string filePath, int& nVertices);
 
 const GLuint WIDTH = 1000, HEIGHT = 1000;
@@ -40,7 +39,8 @@ bool firstMouse = true;
 
 vector <Vertex> vertices;
 vector <GLuint> indices;
-
+vector <glm::vec3> normals;
+vector <glm::vec2> texCoords;
 
 int main() {
 
@@ -66,14 +66,21 @@ int main() {
 	glViewport(0, 0, width, height);
 
 	Shader shader("Hello3D.vs", "Hello3D.fs");
+	shader.use();
 
 	int nVertices;
 	GLuint VAO = loadSimpleOjb("../../Common/3D_Models/pikachu.obj", nVertices);
 
-	glUseProgram(shader.ID);
-
 	GLint viewLoc = glGetUniformLocation(shader.ID, "view");
 	GLint projLoc = glGetUniformLocation(shader.ID, "projection");
+
+	shader.setFloat("ka", 0.5);
+	shader.setFloat("kd", 0.5);
+	shader.setFloat("ks", 0.5);
+	shader.setFloat("n", 10);
+
+	shader.setVec3("lightPos", 0.0f, 15.0f, 0.0f);
+	shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -98,6 +105,8 @@ int main() {
 		glm::mat4 view = glm::lookAt(cameraPos,
 			cameraPos + cameraFront,
 			cameraUp);
+
+		shader.setVec3("cameraPos", cameraPos.x, cameraPos.y, cameraPos.z);
 
 		glm::mat4 projection = glm::perspective(fov, (GLfloat)WIDTH / (GLfloat)HEIGHT, 0.1f, 100.0f);
 
@@ -256,11 +265,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 		fov = 45.0f;
 }
 
-int setupGeometry() {
-
-	return 1;
-}
-
 int loadSimpleOjb(string filePath, int& nVertices) {
 
 	ifstream inputFile;
@@ -292,6 +296,17 @@ int loadSimpleOjb(string filePath, int& nVertices) {
 			v.v_color.g = 1.0;
 			v.v_color.b = 0.0;
 			vertices.push_back(v);
+
+		} else if (word == "vn") {
+			glm::vec3 vn;
+			ssLine >> vn.x >> vn.y >> vn.z;
+			normals.push_back(vn);
+		}
+		else if (word == "vt") {
+			glm::vec2 vt;
+			ssLine >> vt.s >> vt.t;
+			texCoords.push_back(vt);
+
 		} else if (word == "f") {
 			string tokens[3];
 
@@ -300,7 +315,6 @@ int loadSimpleOjb(string filePath, int& nVertices) {
 				int pos = tokens[i].find("/");
 				string token = tokens[i].substr(0, pos);
 				int index = atoi(token.c_str()) - 1;
-
 				indices.push_back(index);
 				vertBuffer.push_back(vertices[index].position.x);
 				vertBuffer.push_back(vertices[index].position.y);
@@ -308,13 +322,27 @@ int loadSimpleOjb(string filePath, int& nVertices) {
 				vertBuffer.push_back(vertices[index].v_color.r);
 				vertBuffer.push_back(vertices[index].v_color.g);
 				vertBuffer.push_back(vertices[index].v_color.b);
+
+				tokens[i] = tokens[i].substr(pos + 1);
+				pos = tokens[i].find("/");
+				token = tokens[i].substr(0, pos);
+				int indexT = atoi(token.c_str()) - 1;
+				vertBuffer.push_back(texCoords[indexT].s);
+				vertBuffer.push_back(texCoords[indexT].t);
+
+				tokens[i] = tokens[i].substr(pos + 1);
+				token = tokens[i].substr(0, pos);
+				int indexN = atoi(token.c_str()) - 1;
+				vertBuffer.push_back(normals[indexN].x);
+				vertBuffer.push_back(normals[indexN].y);
+				vertBuffer.push_back(normals[indexN].z);
 			}
 		}
 	}
 
 	inputFile.close();
 
-	nVertices = vertBuffer.size() / 6;
+	nVertices = vertBuffer.size() / 11;
 
 	GLuint VBO, VAO;
 
@@ -328,16 +356,24 @@ int loadSimpleOjb(string filePath, int& nVertices) {
 
 	glBindVertexArray(VAO);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+	//Posicao: X, Y, Z
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	//Cor: R, G, B
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
+
+	//Coordenadas de textura: S, T
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
+
+	//Vetor normal: X, Y, Z
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(8 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(3);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
 	return VAO;
-
-	return nVertices;
 }
