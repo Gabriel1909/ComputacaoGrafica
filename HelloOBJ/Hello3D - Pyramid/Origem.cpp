@@ -79,8 +79,8 @@ int main() {
 	shader.setFloat("ks", 0.5);
 	shader.setFloat("n", 10);
 
-	shader.setVec3("lightPos", 0.0f, 15.0f, 0.0f);
-	shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+	shader.setVec3("lightPos", 5.0f, 15.0f, 5.0f);
+	shader.setVec3("lightColor", 1.0f, 0.0f, 0.0f);
 
 	glEnable(GL_DEPTH_TEST);
 
