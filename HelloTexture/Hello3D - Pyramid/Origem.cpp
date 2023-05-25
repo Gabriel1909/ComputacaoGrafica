@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
 #include <assert.h>
-#include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 
 using namespace std;
@@ -12,6 +12,7 @@ using namespace std;
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <stb_image.h>
 #include "Shader.h"
 #include "Mesh.h"
 
@@ -26,7 +27,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-int loadSimpleOjb(string filePath, int& nVertices, glm::vec3 color);
+int loadSimpleObj(string filePath, int& nVertices, glm::vec3 color = glm::vec3(1.0, 0.0, 0.0));
+int generateTexture(string filePath);
 
 const GLuint WIDTH = 1000, HEIGHT = 1000;
 
@@ -38,16 +40,11 @@ float deltaTime, lastFrame, lastX, lastY, yaw = -90, pitch;
 float fov = 45.0f;
 bool firstMouse = true;
 
-vector <Vertex> vertices;
-vector <GLuint> indices;
-vector <glm::vec3> normals;
-vector <glm::vec2> texCoords;
-
 int main() {
 
 	glfwInit();
 
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Trabalho Grau A", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Olá Visualizador 3D!", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	glfwSetKeyCallback(window, key_callback);
@@ -69,10 +66,14 @@ int main() {
 	Shader shader("Hello3D.vs", "Hello3D.fs");
 	shader.use();
 
+	GLuint texID = generateTexture("../../Common/3D_Models/Suzanne/example.bmp");
+
 	int nVertices;
-	GLuint VAO = loadSimpleOjb("../../Common/3D_Models/pikachu.obj", nVertices, glm::vec3(1.0f, 0.0f, 0.0f));
-	GLuint VAO2 = loadSimpleOjb("../../Common/3D_Models/pikachu.obj", nVertices, glm::vec3(0.0f, 1.0f, 0.0f));
-	GLuint VAO3 = loadSimpleOjb("../../Common/3D_Models/pikachu.obj", nVertices, glm::vec3(0.0f, 0.0f, 1.0f));
+	GLuint VAO = loadSimpleObj("../../Common/3D_Models/Suzanne/suzanneTri.obj", nVertices);
+
+	//GLuint VAO = loadSimpleObj("../../Common/3D_Models/Pikachu.obj", nVertices);
+	//GLuint VAO2 = loadSimpleObj("../../Common/3D_Models/Pikachu.obj", nVertices, glm::vec3(0.0f, 1.0f, 0.0f));
+	//GLuint VAO3 = loadSimpleObj("../../Common/3D_Models/Pikachu.obj", nVertices, glm::vec3(0.0f, 0.0f, 1.0f));
 
 	GLint viewLoc = glGetUniformLocation(shader.ID, "view");
 	GLint projLoc = glGetUniformLocation(shader.ID, "projection");
@@ -82,15 +83,18 @@ int main() {
 	shader.setFloat("ks", 0.5);
 	shader.setFloat("q", 10);
 
-	shader.setVec3("lightPos", 5.0f, 15.0f, 5.0f);
+	shader.setVec3("lightPos", -2.0f, 10.0f, 3.0f);
 	shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
-	Mesh pikachu1, pikachu2, pikachu3;
-	pikachu1.initialize(VAO, nVertices, &shader, glm::vec3(-3.0, 0.0, 0.0));
-	pikachu2.initialize(VAO2, nVertices, &shader);
-	pikachu3.initialize(VAO3, nVertices, &shader, glm::vec3(3.0, 0.0, 0.0));
+	Mesh pikachu1;
+	pikachu1.initialize(VAO, nVertices, &shader, texID, glm::vec3(-3.0, 0.0, 0.0));
+	//pikachu2.initialize(VAO2, nVertices, &shader);
+	//pikachu3.initialize(VAO3, nVertices, &shader, glm::vec3(3.0, 0.0, 0.0));
 
 	glEnable(GL_DEPTH_TEST);
+
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(glGetUniformLocation(shader.ID, "colorBuffer"), 0);
 
 	while (!glfwWindowShouldClose(window)) {
 
@@ -120,7 +124,6 @@ int main() {
 
 		switch (rotateChar) {
 			case 'X':
-				pikachu1.
 				model = glm::rotate(model, angle, glm::vec3(1.0f, 0.0f, 0.0f));
 				break;
 
@@ -153,7 +156,6 @@ int main() {
 				break;
 		}
 
-		//GLint modelLoc = glGetUniformLocation(shader.ID, "model");
 		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
@@ -161,11 +163,11 @@ int main() {
 		pikachu1.update();
 		pikachu1.draw();
 
-		pikachu2.update();
-		pikachu2.draw();
+		//pikachu2.update();
+		//pikachu2.draw();
 
-		pikachu3.update();
-		pikachu3.draw();
+		//pikachu3.update();
+		//pikachu3.draw();
 
 		glfwSwapBuffers(window);
 	}
@@ -279,7 +281,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 		fov = 45.0f;
 }
 
-int loadSimpleOjb(string filePath, int& nVertices, glm::vec3 color) {
+int loadSimpleObj(string filePath, int& nVertices, glm::vec3 color) {
 
 	ifstream inputFile;
 	inputFile.open(filePath);
@@ -292,6 +294,11 @@ int loadSimpleOjb(string filePath, int& nVertices, glm::vec3 color) {
 	char line[100];
 	string sLine;
 	vector<GLfloat> vertBuffer;
+
+	vector <Vertex> vertices;
+	vector <int> indices;
+	vector <glm::vec3> normals;
+	vector <glm::vec2> texCoords;
 
 	while (!inputFile.eof()) {
 		inputFile.getline(line, 100);
@@ -391,4 +398,39 @@ int loadSimpleOjb(string filePath, int& nVertices, glm::vec3 color) {
 
 	glBindVertexArray(0);
 	return VAO;
+}
+
+int generateTexture(string filePath) {
+	GLuint texID;
+
+	glGenTextures(1, &texID);
+	glBindTexture(GL_TEXTURE_2D, texID);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &nrChannels, 0);
+
+	if (data) {
+		if (nrChannels == 3) {
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE,
+				data);
+		}
+		else {
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+				data);
+		}
+		glGenerateMipmap(GL_TEXTURE_2D);
+	} else {
+		std::cout << "Failed to load texture" << std::endl;
+	}
+
+	stbi_image_free(data);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return texID;
 }
