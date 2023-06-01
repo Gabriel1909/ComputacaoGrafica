@@ -14,7 +14,7 @@ using namespace std;
 #include <glm/gtc/type_ptr.hpp>
 #include <stb_image.h>
 #include "Shader.h"
-#include "Mesh.h"
+#include "Object.h"
 
 
 struct Vertex {
@@ -26,9 +26,6 @@ struct Vertex {
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-
-int loadSimpleObj(string filePath, int& nVertices, glm::vec3 color = glm::vec3(1.0, 0.0, 0.0));
-int generateTexture(string filePath);
 
 const GLuint WIDTH = 1000, HEIGHT = 1000;
 
@@ -48,7 +45,6 @@ int main() {
 	glfwMakeContextCurrent(window);
 
 	glfwSetKeyCallback(window, key_callback);
-	glfwSetCursorPos(window, WIDTH / 2, HEIGHT / 2);
 	glfwSetCursorPosCallback(window, mouse_callback);
 
 	glfwSetScrollCallback(window, scroll_callback);
@@ -66,15 +62,6 @@ int main() {
 	Shader shader("Hello3D.vs", "Hello3D.fs");
 	shader.use();
 
-	GLuint texID = generateTexture("../../Common/3D_Models/Suzanne/example.bmp");
-
-	int nVertices;
-	GLuint VAO = loadSimpleObj("../../Common/3D_Models/Suzanne/suzanneTri.obj", nVertices);
-
-	//GLuint VAO = loadSimpleObj("../../Common/3D_Models/Pikachu.obj", nVertices);
-	//GLuint VAO2 = loadSimpleObj("../../Common/3D_Models/Pikachu.obj", nVertices, glm::vec3(0.0f, 1.0f, 0.0f));
-	//GLuint VAO3 = loadSimpleObj("../../Common/3D_Models/Pikachu.obj", nVertices, glm::vec3(0.0f, 0.0f, 1.0f));
-
 	GLint viewLoc = glGetUniformLocation(shader.ID, "view");
 	GLint projLoc = glGetUniformLocation(shader.ID, "projection");
 
@@ -86,10 +73,8 @@ int main() {
 	shader.setVec3("lightPos", -2.0f, 10.0f, 3.0f);
 	shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
-	Mesh pikachu1;
-	pikachu1.initialize(VAO, nVertices, &shader, texID, glm::vec3(-3.0, 0.0, 0.0));
-	//pikachu2.initialize(VAO2, nVertices, &shader);
-	//pikachu3.initialize(VAO3, nVertices, &shader, glm::vec3(3.0, 0.0, 0.0));
+	Object pikachu1;
+	pikachu1.initialize("../../Common/3D_Models/Pokemon/Pikachu.obj", &shader);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -156,23 +141,18 @@ int main() {
 				break;
 		}
 
-		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		GLint modelLoc = glGetUniformLocation(shader.ID, "model");
+		glUniformMatrix4fv(modelLoc, 1, FALSE, glm::value_ptr(model));
+
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
 		pikachu1.update();
 		pikachu1.draw();
 
-		//pikachu2.update();
-		//pikachu2.draw();
-
-		//pikachu3.update();
-		//pikachu3.draw();
-
 		glfwSwapBuffers(window);
 	}
 
-	glDeleteVertexArrays(1, &VAO);
 	glfwTerminate();
 	return 0;
 }
@@ -279,158 +259,4 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 		fov = 1.0f;
 	if (fov >= 45.0f)
 		fov = 45.0f;
-}
-
-int loadSimpleObj(string filePath, int& nVertices, glm::vec3 color) {
-
-	ifstream inputFile;
-	inputFile.open(filePath);
-
-	if (!inputFile.is_open()) {
-		cout << "Erro ao abrir arquivo no caminho " << filePath << endl;
-		return -1;
-	}
-
-	char line[100];
-	string sLine;
-	vector<GLfloat> vertBuffer;
-
-	vector <Vertex> vertices;
-	vector <int> indices;
-	vector <glm::vec3> normals;
-	vector <glm::vec2> texCoords;
-
-	while (!inputFile.eof()) {
-		inputFile.getline(line, 100);
-		sLine = line;
-
-		string word;
-
-		istringstream ssLine(line);
-
-		ssLine >> word;
-
-		if (word == "v") {
-			Vertex v;
-			ssLine >> v.position.x >> v.position.y >> v.position.z;
-			v.v_color.r = color.r; 
-			v.v_color.g = color.g; 
-			v.v_color.b = color.b;
-
-			vertices.push_back(v);
-
-		} else if (word == "vn") {
-			glm::vec3 vn;
-			ssLine >> vn.x >> vn.y >> vn.z;
-			normals.push_back(vn);
-		}
-		else if (word == "vt") {
-			glm::vec2 vt;
-			ssLine >> vt.s >> vt.t;
-			texCoords.push_back(vt);
-
-		} else if (word == "f") {
-			string tokens[3];
-
-			for (int i = 0; i < 3; i++) {
-				ssLine >> tokens[i];
-				int pos = tokens[i].find("/");
-				string token = tokens[i].substr(0, pos);
-				int index = atoi(token.c_str()) - 1;
-				indices.push_back(index);
-				vertBuffer.push_back(vertices[index].position.x);
-				vertBuffer.push_back(vertices[index].position.y);
-				vertBuffer.push_back(vertices[index].position.z);
-				vertBuffer.push_back(vertices[index].v_color.r);
-				vertBuffer.push_back(vertices[index].v_color.g);
-				vertBuffer.push_back(vertices[index].v_color.b);
-
-				tokens[i] = tokens[i].substr(pos + 1);
-				pos = tokens[i].find("/");
-				token = tokens[i].substr(0, pos);
-				int indexT = atoi(token.c_str()) - 1;
-				vertBuffer.push_back(texCoords[indexT].s);
-				vertBuffer.push_back(texCoords[indexT].t);
-
-				tokens[i] = tokens[i].substr(pos + 1);
-				token = tokens[i].substr(0, pos);
-				int indexN = atoi(token.c_str()) - 1;
-				vertBuffer.push_back(normals[indexN].x);
-				vertBuffer.push_back(normals[indexN].y);
-				vertBuffer.push_back(normals[indexN].z);
-			}
-		}
-	}
-
-	inputFile.close();
-
-	nVertices = vertBuffer.size() / 11;
-
-	GLuint VBO, VAO;
-
-	glGenBuffers(1, &VBO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-	glBufferData(GL_ARRAY_BUFFER, vertBuffer.size() * sizeof(GLfloat), vertBuffer.data(), GL_STATIC_DRAW);
-
-	glGenVertexArrays(1, &VAO);
-
-	glBindVertexArray(VAO);
-
-	//Posicao: X, Y, Z
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-
-	//Cor: R, G, B
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-
-	//Coordenadas de textura: S, T
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
-
-	//Vetor normal: X, Y, Z
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(8 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(3);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
-	return VAO;
-}
-
-int generateTexture(string filePath) {
-	GLuint texID;
-
-	glGenTextures(1, &texID);
-	glBindTexture(GL_TEXTURE_2D, texID);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	int width, height, nrChannels;
-	unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &nrChannels, 0);
-
-	if (data) {
-		if (nrChannels == 3) {
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE,
-				data);
-		}
-		else {
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-				data);
-		}
-		glGenerateMipmap(GL_TEXTURE_2D);
-	} else {
-		std::cout << "Failed to load texture" << std::endl;
-	}
-
-	stbi_image_free(data);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	return texID;
 }

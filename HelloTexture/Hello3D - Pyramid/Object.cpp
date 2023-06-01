@@ -26,11 +26,11 @@ void Object::draw() {
 }
 
 void Object::loadObj(string filePath) {
-	string texNames[] = { "../../3D_models/Pokemon/textures/PikachuMouthDh.png",
-		"../../3D_models/Pokemon/textures/PikachuDh.png",
-		"../../3D_models/Pokemon/textures/PikachuHohoDh.png",
-		"../../3D_models/Pokemon/textures/PikachuEyeDh.png",
-		"../../3D_models/Pokemon/textures/PikachuDh.png" };
+	string texNames[] = { "../../Common/3D_Models/Pokemon/textures/PikachuMouthDh.png",
+		"../../Common/3D_Models/Pokemon/textures/PikachuDh.png",
+		"../../Common/3D_Models/Pokemon/texturesPikachuHohoDh.png",
+		"../../Common/3D_Models/Pokemon/texturesPikachuEyeDh.png",
+		"../../Common/3D_Models/Pokemon/texturesPikachuDh.png" };
 
 	int iTexture = 0;
 
@@ -44,105 +44,101 @@ void Object::loadObj(string filePath) {
 
 	bool initializeGroup = true;
 
-	if (inputFile.is_open()) {
-		char line[100];
-		string sline;
+	if (!inputFile.is_open()) {
+		cout << "Erro ao abrir arquivo no caminho " << filePath << endl;
+		return;
+	}
+
+	char line[100];
+	string sline;
 
 
-		while (!inputFile.eof()) {
-			inputFile.getline(line, 100);
-			sline = line;
+	while (!inputFile.eof()) {
+		inputFile.getline(line, 100);
+		sline = line;
 
-			string word;
-			istringstream ssline(sline);
+		string word;
+		istringstream ssline(sline);
 
-			ssline >> word;
+		ssline >> word;
+
+		if (initializeGroup) {
+
+		}
+
+		if (word == "v" || inputFile.eof()) {
 
 			if (initializeGroup) {
 
-			}
 
-			if (word == "v") {
-
-				if (initializeGroup) {
-
-
-					if (vertbuffer.size()) 	{
-						initializeGroup = false;
-						Mesh m;
-						int nVertices;
-						GLuint VAO = generateVAO(vertbuffer, nVertices);
-						GLuint texID = generateTexture(texNames[iTexture]);
-						iTexture++;
-						m.initialize(VAO, nVertices, shader, texID);
-						grupos.push_back(m);
-
-						vertices.clear();
-						colors.clear();
-						normals.clear();
-						texCoord.clear();
-						vertbuffer.clear();
-					}
-				}
-
-				glm::vec3 v, color;
-				ssline >> v.x >> v.y >> v.z;
-				color.r = 1.0; color.g = 0.0; color.b = 0.0;
-				vertices.push_back(v);
-				colors.push_back(color);
-			}
-			if (word == "vt") {
-				glm::vec2 vt;
-				ssline >> vt.s >> vt.t;
-				texCoord.push_back(vt);
-			}
-			if (word == "vn") {
-				glm::vec3 vn;
-				ssline >> vn.x >> vn.y >> vn.z;
-				normals.push_back(vn);
-			}
-
-			if (word == "g") {
-				initializeGroup = true;
-			}
-			if (word == "f") {
-				string tokens[3];
-				for (int i = 0; i < 3; i++) {
-					ssline >> tokens[i];
-					int pos = tokens[i].find("/");
-					string token = tokens[i].substr(0, pos);
-					int index = atoi(token.c_str()) - 1;
-
-					vertbuffer.push_back(vertices[index].x);
-					vertbuffer.push_back(vertices[index].y);
-					vertbuffer.push_back(vertices[index].z);
-					vertbuffer.push_back(colors[index].r);
-					vertbuffer.push_back(colors[index].g);
-					vertbuffer.push_back(colors[index].b);
-
-					tokens[i] = tokens[i].substr(pos + 1);
-					pos = tokens[i].find("/");
-					token = tokens[i].substr(0, pos);
-					int indexT = atoi(token.c_str()) - 1;
-
-					vertbuffer.push_back(texCoord[indexT].s);
-					vertbuffer.push_back(texCoord[indexT].t);
-
-					tokens[i] = tokens[i].substr(pos + 1);
-					token = tokens[i].substr(0, pos);
-					int indexN = atoi(token.c_str()) - 1;
-
-					vertbuffer.push_back(normals[indexN].x);
-					vertbuffer.push_back(normals[indexN].y);
-					vertbuffer.push_back(normals[indexN].z);
+				if (vertbuffer.size()) 	{
+					initializeGroup = false;
+					Mesh m;
+					int nVertices;
+					GLuint VAO = generateVAO(vertbuffer, nVertices);
+					GLuint texID = generateTexture(texNames[iTexture]);
+					iTexture++;
+					m.initialize(VAO, nVertices, shader, texID);
+					grupos.push_back(m);
+					vertbuffer.clear();
 				}
 			}
+
+			glm::vec3 v, color;
+			ssline >> v.x >> v.y >> v.z;
+			color.r = 1.0; color.g = 0.0; color.b = 0.0;
+			vertices.push_back(v);
+			colors.push_back(color);
+		}
+		if (word == "vt") {
+			glm::vec2 vt;
+			ssline >> vt.s >> vt.t;
+			texCoord.push_back(vt);
+		}
+		if (word == "vn") {
+			glm::vec3 vn;
+			ssline >> vn.x >> vn.y >> vn.z;
+			normals.push_back(vn);
 		}
 
-		inputFile.close();
-	} else {
-		cout << "Não foi possivel abrir o arquivo " << filePath << endl;
+		if (word == "g") {
+			initializeGroup = true;
+		}
+		if (word == "f") {
+			string tokens[3];
+			for (int i = 0; i < 3; i++) {
+				ssline >> tokens[i];
+				int pos = tokens[i].find("/");
+				string token = tokens[i].substr(0, pos);
+				int index = atoi(token.c_str()) - 1;
+
+				vertbuffer.push_back(vertices[index].x);
+				vertbuffer.push_back(vertices[index].y);
+				vertbuffer.push_back(vertices[index].z);
+				vertbuffer.push_back(colors[index].r);
+				vertbuffer.push_back(colors[index].g);
+				vertbuffer.push_back(colors[index].b);
+
+				tokens[i] = tokens[i].substr(pos + 1);
+				pos = tokens[i].find("/");
+				token = tokens[i].substr(0, pos);
+				int indexT = atoi(token.c_str()) - 1;
+
+				vertbuffer.push_back(texCoord[indexT].s);
+				vertbuffer.push_back(texCoord[indexT].t);
+
+				tokens[i] = tokens[i].substr(pos + 1);
+				token = tokens[i].substr(0, pos);
+				int indexN = atoi(token.c_str()) - 1;
+
+				vertbuffer.push_back(normals[indexN].x);
+				vertbuffer.push_back(normals[indexN].y);
+				vertbuffer.push_back(normals[indexN].z);
+			}
+		}
 	}
+
+	inputFile.close();
 }
 
 GLuint Object::generateVAO(vector<GLfloat> vertbuffer, int& nVertices) {
