@@ -7,18 +7,13 @@ newmtl mat1
 	Ka 0.5 0.5 0.5
 	Kd 0.9 0.9 0.9
 	Ks 0.0 0.0 0.0
-	map_Kd textures/PikachuDh.png
+	map_Kd C:/Users/gabri/projetos/ComputacaoGrafica/3D_Models/Pokemon/textures/PikachuDh.png
 
 newmtl mat2
-	Ns 10
-	Ni 1.0
-	d 1.0
-	Tf 1 1 1
-	illum 2
-	Ka 0.5 0.5 0.5
-	Kd 0.9 0.9 0.9
-	Ks 0.0 0.0 0.0
-	map_Kd textures/PikachuEyeDh.png
+	Ka 0.5
+	Kd 0.9
+	Ks 0.0
+	map_Kd C:/Users/gabri/projetos/ComputacaoGrafica/3D_Models/Pokemon/textures/PikachuEyeDh.png
 
 newmtl mat3
 	Ns 10
@@ -29,7 +24,7 @@ newmtl mat3
 	Ka 0.5 0.5 0.5
 	Kd 0.9 0.9 0.9
 	Ks 0.0 0.0 0.0
-	map_Kd textures/PikachuHohoDh.png
+	map_Kd C:/Users/gabri/projetos/ComputacaoGrafica/3D_Models/Pokemon/textures/PikachuHohoDh.png
 
 newmtl mat4
 	Ns 10
@@ -40,7 +35,7 @@ newmtl mat4
 	Ka 0.5 0.5 0.5
 	Kd 0.9 0.9 0.9
 	Ks 0.0 0.0 0.0
-	map_Kd textures/PikachuMouthDh.png
+	map_Kd C:/Users/gabri/projetos/ComputacaoGrafica/3D_Models/Pokemon/textures/PikachuMouthDh.png
 
 newmtl mat5
 	Ns 10
@@ -51,5 +46,5 @@ newmtl mat5
 	Ka 0.5 0.5 0.5
 	Kd 0.9 0.9 0.9
 	Ks 0.0 0.0 0.0
-	map_Kd textures/PikachuDh.png
+	map_Kd C:/Users/gabri/projetos/ComputacaoGrafica/3D_Models/Pokemon/textures/PikachuDh.png
 

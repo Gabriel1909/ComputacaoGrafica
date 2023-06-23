@@ -25,13 +25,6 @@ void Object::draw() {
 }
 
 void Object::loadObj(string filePath) {
-	string texNames[] = { "../../3D_models/Pokemon/textures/PikachuMouthDh.png",
-		"../../3D_models/Pokemon/textures/PikachuDh.png",
-		"../../3D_models/Pokemon/textures/PikachuHohoDh.png",
-		"../../3D_models/Pokemon/textures/PikachuEyeDh.png",
-		"../../3D_models/Pokemon/textures/PikachuDh.png" };
-	int iTexture = 0;
-
 	ifstream inputFile;
 	inputFile.open(filePath);
 	vector <GLfloat> vertbuffer;
@@ -40,7 +33,8 @@ void Object::loadObj(string filePath) {
 	vector <glm::vec3> normals;
 	vector <glm::vec2> texCoord;
 
-	bool initializeGroup = true;
+	bool initializeGroup = false;
+	string materialName;
 
 	if (inputFile.is_open()) {
 		char line[100];
@@ -55,26 +49,38 @@ void Object::loadObj(string filePath) {
 
 			ssline >> word;
 
-			if (initializeGroup) {
-				
+			if (word == "mtllib") {
+				string mtlPath;
+				ssline >> mtlPath;
+				//loadMTL(mtlPath);
+				loadMTL("C:/Users/gabri/projetos/ComputacaoGrafica/3D_Models/Pokemon/Pikachu.mtl");
+			}
+
+			if (word == "usemtl") {
+				ssline >> materialName;
 			}
 
 			if (word == "v" || inputFile.eof())	{
-				
+
 				if (initializeGroup) {
-					
+
+					Material material = materiais[materialName];
+
 					if (vertbuffer.size()) {
+						cout << "material material:" << material.name << material.texName << material.ka << material.kd << material.ks << material.d << endl;
+
 						initializeGroup = false;
 						Mesh m;
 						int nVertices;
 						GLuint VAO = generateVAO(vertbuffer, nVertices);
-						GLuint texID = generateTexture(texNames[iTexture]);
-						iTexture++;
-						m.initialize(VAO, nVertices, shader, texID);
+						GLuint texID = generateTexture(material.texName);
+						m.initialize(VAO, nVertices, shader, texID, material);
 						grupos.push_back(m);
 
 						vertbuffer.clear();
 					}
+					
+					initializeGroup = false;
 				}
 
 				glm::vec3 v, color;
@@ -129,6 +135,91 @@ void Object::loadObj(string filePath) {
 		inputFile.close();
 	} else {
 		cout << "Não foi possivel abrir o arquivo " << filePath << endl;
+	}
+}
+
+void Object::loadMTL(string filePath) {
+
+	ifstream inputFile;
+	inputFile.open(filePath);
+
+	if (inputFile.is_open()) {
+		char line[100];
+		string sline;
+
+		Material currentMaterial; // Material atual sendo lido
+		bool newMaterial = false; // Indica se uma nova definição de material foi encontrada
+
+		while (!inputFile.eof()) {
+			inputFile.getline(line, 100);
+			sline = line;
+
+			string word;
+			istringstream ssline(sline);
+
+			ssline >> word;
+
+			if (word == "newmtl") {
+
+				if (newMaterial) {
+					materiais[currentMaterial.name] = currentMaterial;
+				}
+
+				// Criar um novo material
+
+				string materialName;
+				ssline >> materialName;
+
+				cout << "Novo material:" << materialName << endl;
+
+				currentMaterial.initialize(materialName);
+				newMaterial = true;
+			}
+			else if (word == "Ka") {
+				// Coeficiente de ambiente (cor ambiente)
+				float ka;
+				ssline >> ka;
+				currentMaterial.ka = ka;
+				cout << "ka:" << ka << endl;
+			}
+			else if (word == "Kd") {
+				// Coeficiente de ambiente (cor ambiente)
+				float kd;
+				ssline >> kd;
+				currentMaterial.kd = kd;
+				cout << "kd:" << kd << endl;
+			}
+			else if (word == "Ks") {
+				// Coeficiente de ambiente (cor ambiente)
+				float ks;
+				ssline >> ks;
+				currentMaterial.ks = ks;
+				cout << "ks:" << ks << endl;
+
+			}
+			else if (word == "d") {
+				// Coeficiente de ambiente (cor ambiente)
+				float d;
+				ssline >> d;
+				currentMaterial.d = d;
+				cout << "d:" << d << endl;
+
+			}
+			else if (word == "map_Kd") {
+				// Textura difusa
+				string texturePath;
+				ssline >> texturePath;
+				currentMaterial.texName = texturePath;
+				cout << "Text:" << texturePath << endl;
+
+			}
+		}
+
+		materiais[currentMaterial.name] = currentMaterial;
+
+		inputFile.close();
+	} else {
+		cout << "Não foi possível abrir o arquivo .mtl" << endl;
 	}
 }
 

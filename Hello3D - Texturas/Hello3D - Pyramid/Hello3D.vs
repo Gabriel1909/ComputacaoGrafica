@@ -1,4 +1,3 @@
-// Código fonte do Vertex Shader (em GLSL)
 #version 450
 
 layout (location = 0) in vec3 position;
@@ -15,14 +14,10 @@ out vec3 scaledNormal;
 out vec3 fragPos;
 out vec2 texCoord;
 
-void main()
-{
-	//...pode ter mais linhas de código aqui!
+void main() {
 	gl_Position = projection * view * model * vec4(position, 1.0);
 	finalColor = color;
-	//Vetor normal escalada
 	scaledNormal = normal; // mat3(transpose(inverse(model))) * normal;
-	//Posição do vértice com a transformação do objeto 
 	fragPos = vec3(model * vec4(position, 1.0));
 	texCoord = vec2(texc.x,1-texc.y);
 }
