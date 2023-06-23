@@ -7,8 +7,7 @@
 
 #include "Shader.h"
 
-class Mesh
-{
+class Mesh {
 public:
 	Mesh() {}
 	~Mesh() {}
@@ -17,9 +16,8 @@ public:
 	void draw();
 
 protected:
-	GLuint VAO; //Identificador do buffer Vertex Array Object
+	GLuint VAO;
 	int nVertices;
 	Shader* shader;
 	GLuint texID;
 };
-

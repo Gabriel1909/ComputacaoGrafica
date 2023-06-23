@@ -1,7 +1,6 @@
 #include "Object.h"
 
-void Object::initialize(string filePath, Shader* shader, glm::vec3 position, glm::vec3 scale, float angle, glm::vec3 axis)
-{
+void Object::initialize(string filePath, Shader* shader, glm::vec3 position, glm::vec3 scale, float angle, glm::vec3 axis) {
 	this->position = position;
 	this->scale = scale;
 	this->angle = angle;
@@ -11,25 +10,21 @@ void Object::initialize(string filePath, Shader* shader, glm::vec3 position, glm
 	loadObj(filePath);
 }
 
-void Object::update()
-{
-	glm::mat4 model = glm::mat4(1); //matriz identidade
+void Object::update() {
+	glm::mat4 model = glm::mat4(1);
 	model = glm::translate(model, position);
 	model = glm::rotate(model, glm::radians(angle), axis);
 	model = glm::scale(model, scale);
 	shader->setMat4("model", glm::value_ptr(model));
 }
 
-void Object::draw()
-{
-	for (int i = 0; i < grupos.size(); i++)
-	{
+void Object::draw() {
+	for (int i = 0; i < grupos.size(); i++) {
 		grupos[i].draw();
 	}
 }
 
-void Object::loadObj(string filePath)
-{
+void Object::loadObj(string filePath) {
 	string texNames[] = { "../../3D_models/Pokemon/textures/PikachuMouthDh.png",
 		"../../3D_models/Pokemon/textures/PikachuDh.png",
 		"../../3D_models/Pokemon/textures/PikachuHohoDh.png",
@@ -47,14 +42,11 @@ void Object::loadObj(string filePath)
 
 	bool initializeGroup = true;
 
-	if (inputFile.is_open())
-	{
+	if (inputFile.is_open()) {
 		char line[100];
 		string sline;
 
-
-		while (!inputFile.eof())
-		{
+		while (!inputFile.eof()) {
 			inputFile.getline(line, 100);
 			sline = line;
 
@@ -63,20 +55,15 @@ void Object::loadObj(string filePath)
 
 			ssline >> word;
 
-			if (initializeGroup)
-			{
+			if (initializeGroup) {
 				
 			}
 
-			if (word == "v" || inputFile.eof())
-			{
+			if (word == "v" || inputFile.eof())	{
 				
-				if (initializeGroup)
-				{
+				if (initializeGroup) {
 					
-
-					if (vertbuffer.size())
-					{
+					if (vertbuffer.size()) {
 						initializeGroup = false;
 						Mesh m;
 						int nVertices;
@@ -86,42 +73,28 @@ void Object::loadObj(string filePath)
 						m.initialize(VAO, nVertices, shader, texID);
 						grupos.push_back(m);
 
-						//vertices.clear();
-						//colors.clear();
-						//normals.clear();
-						//texCoord.clear();
 						vertbuffer.clear();
 					}
-
 				}
+
 				glm::vec3 v, color;
 				ssline >> v.x >> v.y >> v.z;
 				color.r = 1.0; color.g = 0.0; color.b = 0.0;
 				vertices.push_back(v);
 				colors.push_back(color);
-			}
-			if (word == "vt")
-			{
+			} else if (word == "vt") {
 				glm::vec2 vt;
 				ssline >> vt.s >> vt.t;
 				texCoord.push_back(vt);
-			}
-			if (word == "vn")
-			{
+			} else if (word == "vn") {
 				glm::vec3 vn;
 				ssline >> vn.x >> vn.y >> vn.z;
 				normals.push_back(vn);
-			}
-
-			if (word == "g") //início de um novo grupo
-			{
+			} else if (word == "g") {
 				initializeGroup = true;
-			}
-			if (word == "f")
-			{
+			} else if (word == "f")	{
 				string tokens[3];
-				for (int i = 0; i < 3; i++)
-				{
+				for (int i = 0; i < 3; i++)	{
 					ssline >> tokens[i];
 					int pos = tokens[i].find("/");
 					string token = tokens[i].substr(0, pos);
@@ -149,42 +122,29 @@ void Object::loadObj(string filePath)
 					vertbuffer.push_back(normals[indexN].x);
 					vertbuffer.push_back(normals[indexN].y);
 					vertbuffer.push_back(normals[indexN].z);
-
 				}
-
 			}
-
 		}
 
 		inputFile.close();
-	}
-	else
-	{
+	} else {
 		cout << "Não foi possivel abrir o arquivo " << filePath << endl;
 	}
-
 }
 
-GLuint Object::generateVAO(vector<GLfloat> vertbuffer, int &nVertices)
-{
+GLuint Object::generateVAO(vector<GLfloat> vertbuffer, int &nVertices) {
 	nVertices = vertbuffer.size() / 11;
 
 	GLuint VBO, VAO;
 
-	//Geração do identificador do VBO
 	glGenBuffers(1, &VBO);
 
-	//Faz a conexão (vincula) do buffer como um buffer de array
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-	//Envia os dados do array de floats para o buffer da OpenGl
 	glBufferData(GL_ARRAY_BUFFER, vertbuffer.size() * sizeof(GLfloat), vertbuffer.data(), GL_STATIC_DRAW);
 
-	//Geração do identificador do VAO (Vertex Array Object)
 	glGenVertexArrays(1, &VAO);
 
-	// Vincula (bind) o VAO primeiro, e em seguida  conecta e seta o(s) buffer(s) de vértices
-	// e os ponteiros para os atributos 
 	glBindVertexArray(VAO);
 
 	//Atributo posição (x, y, z)
@@ -203,21 +163,16 @@ GLuint Object::generateVAO(vector<GLfloat> vertbuffer, int &nVertices)
 	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(8 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(3);
 
-	// Observe que isso é permitido, a chamada para glVertexAttribPointer registrou o VBO como o objeto de buffer de vértice 
-	// atualmente vinculado - para que depois possamos desvincular com segurança
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	// Desvincula o VAO (é uma boa prática desvincular qualquer buffer ou array para evitar bugs medonhos)
 	glBindVertexArray(0);
 
 	return VAO;
 }
 
-int Object::generateTexture(string filePath)
-{
+int Object::generateTexture(string filePath) {
 	GLuint texID;
 
-	// Gera o identificador da textura na memória
 	glGenTextures(1, &texID);
 	glBindTexture(GL_TEXTURE_2D, texID);
 
@@ -230,22 +185,17 @@ int Object::generateTexture(string filePath)
 	int width, height, nrChannels;
 	unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &nrChannels, 0);
 
-	if (data)
-	{
-		if (nrChannels == 3) //jpg, bmp
-		{
+	if (data) {
+		if (nrChannels == 3) {
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE,
 				data);
-		}
-		else //png
-		{
+		} else {
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 				data);
 		}
+
 		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
+	} else {
 		std::cout << "Failed to load texture" << std::endl;
 	}
 
