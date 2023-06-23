@@ -66,17 +66,12 @@ int main() {
 	GLint projLoc = glGetUniformLocation(shader.ID, "projection");
 	glUniformMatrix4fv(projLoc, 1, FALSE, glm::value_ptr(projection));
 
-	/* shader.setFloat("ka", 0.4);
-	shader.setFloat("kd", 0.5);
-	shader.setFloat("ks", 0.5);
-	shader.setFloat("q", 10); */
-
 	shader.setVec3("lightPos", -2.0f, 10.0f, 3.0f);
 	shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
 	Object obj, obj2;
 	obj.initialize("../../3D_models/Pokemon/Pikachu.obj", &shader, glm::vec3(0.0, -3.0, -3.0));
-	//obj2.initialize("../../3D_models/Suzanne/SuzanneTriTextured.obj", &shader, glm::vec3(3.0, 0.0, 0.0));
+	obj2.initialize("../../3D_models/Suzanne/SuzanneTriTextured.obj", &shader, glm::vec3(3.0, 0.0, 0.0));
 
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(glGetUniformLocation(shader.ID, "colorBuffer"), 0);
@@ -100,8 +95,8 @@ int main() {
 
 		obj.update();
 		obj.draw();
-		/* obj2.update();
-		obj2.draw(); */
+		obj2.update();
+		obj2.draw();
 
 		glfwSwapBuffers(window);
 	}

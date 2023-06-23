@@ -27,6 +27,8 @@ void Object::draw() {
 void Object::loadObj(string filePath) {
 	ifstream inputFile;
 	inputFile.open(filePath);
+	string basePath = filePath.substr(0, filePath.find_last_of("/") + 1);
+
 	vector <GLfloat> vertbuffer;
 
 	vector <glm::vec3> vertices, colors;
@@ -52,8 +54,7 @@ void Object::loadObj(string filePath) {
 			if (word == "mtllib") {
 				string mtlPath;
 				ssline >> mtlPath;
-				//loadMTL(mtlPath);
-				loadMTL("C:/Users/gabri/projetos/ComputacaoGrafica/3D_Models/Pokemon/Pikachu.mtl");
+				loadMTL(basePath + mtlPath);
 			}
 
 			if (word == "usemtl") {
@@ -67,8 +68,6 @@ void Object::loadObj(string filePath) {
 					Material material = materiais[materialName];
 
 					if (vertbuffer.size()) {
-						cout << "material material:" << material.name << material.texName << material.ka << material.kd << material.ks << material.d << endl;
-
 						initializeGroup = false;
 						Mesh m;
 						int nVertices;
@@ -142,13 +141,14 @@ void Object::loadMTL(string filePath) {
 
 	ifstream inputFile;
 	inputFile.open(filePath);
+	string basePath = filePath.substr(0, filePath.find_last_of("/") + 1);
 
 	if (inputFile.is_open()) {
 		char line[100];
 		string sline;
 
-		Material currentMaterial; // Material atual sendo lido
-		bool newMaterial = false; // Indica se uma nova definição de material foi encontrada
+		Material currentMaterial;
+		bool newMaterial = false;
 
 		while (!inputFile.eof()) {
 			inputFile.getline(line, 100);
@@ -165,53 +165,31 @@ void Object::loadMTL(string filePath) {
 					materiais[currentMaterial.name] = currentMaterial;
 				}
 
-				// Criar um novo material
-
 				string materialName;
 				ssline >> materialName;
 
-				cout << "Novo material:" << materialName << endl;
-
 				currentMaterial.initialize(materialName);
 				newMaterial = true;
-			}
-			else if (word == "Ka") {
-				// Coeficiente de ambiente (cor ambiente)
+			} else if (word == "Ka") {
 				float ka;
 				ssline >> ka;
 				currentMaterial.ka = ka;
-				cout << "ka:" << ka << endl;
-			}
-			else if (word == "Kd") {
-				// Coeficiente de ambiente (cor ambiente)
+			} else if (word == "Kd") {
 				float kd;
 				ssline >> kd;
 				currentMaterial.kd = kd;
-				cout << "kd:" << kd << endl;
-			}
-			else if (word == "Ks") {
-				// Coeficiente de ambiente (cor ambiente)
+			} else if (word == "Ks") {
 				float ks;
 				ssline >> ks;
 				currentMaterial.ks = ks;
-				cout << "ks:" << ks << endl;
-
-			}
-			else if (word == "d") {
-				// Coeficiente de ambiente (cor ambiente)
+			} else if (word == "d") {
 				float d;
 				ssline >> d;
 				currentMaterial.d = d;
-				cout << "d:" << d << endl;
-
-			}
-			else if (word == "map_Kd") {
-				// Textura difusa
+			} else if (word == "map_Kd") {
 				string texturePath;
 				ssline >> texturePath;
-				currentMaterial.texName = texturePath;
-				cout << "Text:" << texturePath << endl;
-
+				currentMaterial.texName = basePath + texturePath;
 			}
 		}
 
@@ -287,7 +265,7 @@ int Object::generateTexture(string filePath) {
 
 		glGenerateMipmap(GL_TEXTURE_2D);
 	} else {
-		std::cout << "Failed to load texture" << std::endl;
+		cout << "Failed to load texture" << endl;
 	}
 
 	stbi_image_free(data);
