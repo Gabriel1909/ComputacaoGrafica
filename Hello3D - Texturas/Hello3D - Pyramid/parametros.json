@@ -9,22 +9,12 @@
 		"anguloRotacao": 0.0
       },
       "animacao": {
-        "tipo": "trajetoria",
 		"curva": "bezier",
 		"pontosDeControle": [
 			[ 0.0, 0.0, 0.0 ],
 			[ 1.0, 1.0, 1.0 ],
 			[ 2.0, 0.0, 0.0 ]
 		]
-      }
-    },
-    {
-      "arquivo": "../../3D_models/Suzanne/SuzanneTriTextured.obj",
-      "transformacaoInicial": {
-        "posicao": [ 3.0, 0.0, 0.0 ],
-        "escala": [ 1.0, 1.0, 1.0 ],
-        "rotacao": [ 0.0, 0.0, 1.0 ],
-		"anguloRotacao": 0.0
       }
     }
   ],
