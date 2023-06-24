@@ -20,16 +20,18 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 const GLuint WIDTH = 1000, HEIGHT = 1000;
 
-bool rotateX=false, rotateY=false, rotateZ=false;
-
 glm::vec3 cameraPos = glm::vec3(0.0, 0.0, 3.0);
 glm::vec3 cameraFront = glm::vec3(0.0, 0.0, -1.0);
 glm::vec3 cameraUp = glm::vec3(0.0, 1.0, 0.0);
 float cameraSpeed = 0.05;
+char rotateChar;
+float deltaTime, lastFrame;
 
 bool firstMouse = true;
 float lastX = 0.0, lastY = 0.0;
 float yaw = -90.0, pitch = 0.0;
+vector <Object> objetos;
+int objetoSelecionado = 0;
 
 int main() {
 
@@ -72,6 +74,8 @@ int main() {
 	Object obj, obj2;
 	obj.initialize("../../3D_models/Pokemon/Pikachu.obj", &shader, glm::vec3(0.0, -3.0, -3.0));
 	obj2.initialize("../../3D_models/Suzanne/SuzanneTriTextured.obj", &shader, glm::vec3(3.0, 0.0, 0.0));
+	objetos.push_back(obj);
+	objetos.push_back(obj2);
 
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(glGetUniformLocation(shader.ID, "colorBuffer"), 0);
@@ -87,16 +91,40 @@ int main() {
 
 		glLineWidth(10);
 		glPointSize(20);
+		
+		float angle = (GLfloat)glfwGetTime() * 20;
+
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 
 		glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		glUniformMatrix4fv(viewLoc, 1, FALSE, glm::value_ptr(view));
 
 		shader.setVec3("cameraPos", cameraPos.x, cameraPos.y, cameraPos.z);
 
-		obj.update();
-		obj.draw();
-		obj2.update();
-		obj2.draw();
+		switch (rotateChar) {
+			case 'X':
+				objetos[objetoSelecionado].angle = angle;
+				objetos[objetoSelecionado].axis = glm::vec3(1.0f, 0.0f, 0.0f);
+				break;
+
+			case 'Y':
+				objetos[objetoSelecionado].angle = angle;
+				objetos[objetoSelecionado].axis = glm::vec3(0.0f, 1.0f, 0.0f);
+				break;
+
+			case 'Z':
+				objetos[objetoSelecionado].angle = angle;
+				objetos[objetoSelecionado].axis = glm::vec3(0.0f, 0.0f, 1.0f);
+				break;
+		}
+
+		for (int i = 0; i < objetos.size(); i++) {
+			objetos[i].update();
+			objetos[i].draw();
+		}
+
 
 		glfwSwapBuffers(window);
 	}
@@ -106,42 +134,69 @@ int main() {
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, GL_TRUE);
+
+	float cameraSpeed = 50.0f * deltaTime;
+
+	if (action == GLFW_PRESS) {
+
+		switch (key) {
+
+			case GLFW_KEY_ESCAPE:
+				glfwSetWindowShouldClose(window, GL_TRUE);
+				break;
+
+			case GLFW_KEY_LEFT:
+				if (objetoSelecionado == 0) {
+					objetoSelecionado = objetos.size() - 1;
+				}
+				else {
+					objetoSelecionado--;
+				}
+				break;
+
+			case GLFW_KEY_RIGHT:
+				if (objetoSelecionado == objetos.size() - 1) {
+					objetoSelecionado = 0;
+				}
+				else {
+					objetoSelecionado++;
+				}
+				break;
+
+			case GLFW_KEY_X:
+				rotateChar = 'X';
+				break;
+
+			case GLFW_KEY_Y:
+				rotateChar = 'Y';
+				break;
+
+			case GLFW_KEY_Z:
+				rotateChar = 'Z';
+				break;
+			}
 	}
 
-	if (key == GLFW_KEY_X && action == GLFW_PRESS) {
-		rotateX = true;
-		rotateY = false;
-		rotateZ = false;
-	}
+	else {
+		switch (key) {
 
-	if (key == GLFW_KEY_Y && action == GLFW_PRESS) {
-		rotateX = false;
-		rotateY = true;
-		rotateZ = false;
-	}
 
-	if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
-		rotateX = false;
-		rotateY = false;
-		rotateZ = true;
-	}
+		case GLFW_KEY_W:
+			cameraPos += cameraSpeed * cameraFront;
+			break;
 
-	if (key == GLFW_KEY_W) {
-		cameraPos += cameraSpeed * cameraFront;
-	}
+		case GLFW_KEY_S:
+			cameraPos -= cameraSpeed * cameraFront;
+			break;
 
-	if (key == GLFW_KEY_S) {
-		cameraPos -= cameraSpeed * cameraFront;
-	}
+		case GLFW_KEY_A:
+			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+			break;
 
-	if (key == GLFW_KEY_A) {
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	}
-
-	if (key == GLFW_KEY_D) {
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		case GLFW_KEY_D:
+			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+			break;
+		}
 	}
 }
 
