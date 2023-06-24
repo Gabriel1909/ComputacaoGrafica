@@ -30,27 +30,18 @@
       }
     }
   ],
-  "iluminacao": [
+  "iluminacao": 
     {
-      "tipo": "ponto",
-      "posicao": [ 10.0, 10.0, 10.0 ],
+      "posicao": [ -2.0, 10.0, 3.0 ],
       "cor": [ 1.0, 1.0, 1.0 ]
-    },
-    {
-      "tipo": "direcional",
-      "direcao": [ 0.0, -1.0, 0.0 ],
-      "cor": [ 0.8, 0.8, 0.8 ]
     }
-  ],
+  ,
   "camera": {
-    "posicao": [ 0.0, 0.0, 5.0 ],
-    "alvo": [ 0.0, 0.0, 0.0 ],
-    "acima": [ 0.0, 1.0, 0.0 ],
+    "posicao": [ 0.0, 0.0, 3.0 ],
+    "front": [ 0.0, 0.0, -1.0 ],
+    "up": [ 0.0, 1.0, 0.0 ],
+	"velocidade": 0.05,
     "frustum": {
-      "esquerda": -1.0,
-      "direita": 1.0,
-      "inferior": -1.0,
-      "superior": 1.0,
       "proximidade": 1.0,
       "distancia": 100.0
     }

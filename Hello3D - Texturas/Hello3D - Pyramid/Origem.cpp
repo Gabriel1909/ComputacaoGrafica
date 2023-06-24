@@ -19,14 +19,14 @@ using namespace std;
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void operacoesTeclado();
-void iniciarObjetos(Shader* shader);
+GLint iniciarParametros(Shader* shader, int width, int height);
 
 const GLuint WIDTH = 1000, HEIGHT = 1000;
 
-glm::vec3 cameraPos = glm::vec3(0.0, 0.0, 3.0);
-glm::vec3 cameraFront = glm::vec3(0.0, 0.0, -1.0);
-glm::vec3 cameraUp = glm::vec3(0.0, 1.0, 0.0);
-float cameraSpeed = 0.05;
+glm::vec3 cameraPos;
+glm::vec3 cameraFront;
+glm::vec3 cameraUp;
+float cameraSpeed;
 char rotateChar;
 float deltaTime, lastFrame;
 
@@ -57,24 +57,7 @@ int main() {
 	Shader shader("Hello3D.vs", "Hello3D.fs");
 	shader.use();
 
-	glm::mat4 model = glm::mat4(1);
-	GLint modelLoc = glGetUniformLocation(shader.ID, "model");
-
-	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	glUniformMatrix4fv(modelLoc, 1, FALSE, glm::value_ptr(model));
-
-	glm::mat4 view = glm::lookAt(glm::vec3(0.0, 0.0, 3.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-	GLint viewLoc = glGetUniformLocation(shader.ID, "view");
-	glUniformMatrix4fv(viewLoc, 1, FALSE, glm::value_ptr(view));
-
-	glm::mat4 projection = glm::perspective(glm::radians(45.0f), (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
-	GLint projLoc = glGetUniformLocation(shader.ID, "projection");
-	glUniformMatrix4fv(projLoc, 1, FALSE, glm::value_ptr(projection));
-
-	shader.setVec3("lightPos", -2.0f, 10.0f, 3.0f);
-	shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-
-	iniciarObjetos(&shader);
+	GLint viewLoc = iniciarParametros(&shader, width, height);
 
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(glGetUniformLocation(shader.ID, "colorBuffer"), 0);
@@ -106,7 +89,6 @@ int main() {
 			objetos[i].update();
 			objetos[i].draw();
 		}
-
 
 		glfwSwapBuffers(window);
 	}
@@ -296,13 +278,13 @@ void operacoesTeclado() {
 		}
 }
 
-void iniciarObjetos(Shader* shader) {
+GLint iniciarParametros(Shader* shader, int width, int height) {
 
 	ifstream inputFile("./parametros.json");
 
 	if (!inputFile.is_open()) {
 		cout << "Não foi possivel abrir o arquivo parametros.json" << endl;
-		return;
+		return -1;
 	}
 
 	string conteudo((istreambuf_iterator<char>(inputFile)), istreambuf_iterator<char>());
@@ -319,12 +301,10 @@ void iniciarObjetos(Shader* shader) {
 
 	if (!parsingSuccessful) {
 		cout << "Não foi possivel fazer o parse do JSON: " << parseErrors << endl;
-		return;
+		return -1;
 	}
 
-	const Json::Value objetosJson = json["objetos"];
-
-	for (const auto& objetoJson : objetosJson) {
+	for (const auto& objetoJson : json["objetos"]) {
 		string arquivo = objetoJson["arquivo"].asString();
 		Json::Value transformacao = objetoJson["transformacaoInicial"];
 		Json::Value posicao = transformacao["posicao"];
@@ -338,4 +318,37 @@ void iniciarObjetos(Shader* shader) {
 
 		objetos.push_back(obj);
 	}
+
+	Json::Value posicaoLuz = json["iluminacao"]["posicao"];
+	Json::Value corLuz = json["iluminacao"]["cor"];
+
+	(*shader).setVec3("lightPos", posicaoLuz[0].asFloat(), posicaoLuz[1].asFloat(), posicaoLuz[2].asFloat());
+	(*shader).setVec3("lightColor", corLuz[0].asFloat(), corLuz[1].asFloat(), corLuz[2].asFloat());
+
+	glm::mat4 model = glm::mat4(1);
+	GLint modelLoc = glGetUniformLocation((*shader).ID, "model");
+
+	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	glUniformMatrix4fv(modelLoc, 1, FALSE, glm::value_ptr(model));
+
+	Json::Value camera = json["camera"];
+
+	Json::Value posicaoCamera = camera["posicao"];
+	Json::Value frontCamera = camera["front"];
+	Json::Value upCamera = camera["up"];
+
+	cameraPos = glm::vec3(posicaoCamera[0].asFloat(), posicaoCamera[1].asFloat(), posicaoCamera[2].asFloat());
+	cameraFront = glm::vec3(frontCamera[0].asFloat(), frontCamera[1].asFloat(), frontCamera[2].asFloat());
+	cameraUp = glm::vec3(upCamera[0].asFloat(), upCamera[1].asFloat(), upCamera[2].asFloat());
+	cameraSpeed = camera["velocidade"].asFloat();
+
+	GLint viewLoc = glGetUniformLocation((*shader).ID, "view");
+
+	Json::Value frustum = camera["frustum"];
+
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), (GLfloat)width / (GLfloat)height, frustum["proximidade"].asFloat(), frustum["distancia"].asFloat());
+	GLint projLoc = glGetUniformLocation((*shader).ID, "projection");
+	glUniformMatrix4fv(projLoc, 1, FALSE, glm::value_ptr(projection));
+
+	return viewLoc;
 }
