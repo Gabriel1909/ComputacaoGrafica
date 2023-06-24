@@ -118,6 +118,38 @@ int main() {
 				objetos[objetoSelecionado].angle = angle;
 				objetos[objetoSelecionado].axis = glm::vec3(0.0f, 0.0f, 1.0f);
 				break;
+
+			case '1':
+				objetos[objetoSelecionado].position.x = objetos[objetoSelecionado].position.x - 0.001f;
+				break;
+
+			case '2':
+				objetos[objetoSelecionado].position.x = objetos[objetoSelecionado].position.x + 0.001f;
+				break;
+
+			case '3':
+				objetos[objetoSelecionado].position.y = objetos[objetoSelecionado].position.y - 0.001f;
+				break;
+
+			case '4':
+				objetos[objetoSelecionado].position.y = objetos[objetoSelecionado].position.y + 0.001f;
+				break;
+
+			case '5':
+				objetos[objetoSelecionado].position.z = objetos[objetoSelecionado].position.z - 0.001f;
+				break;
+
+			case '6':
+				objetos[objetoSelecionado].position.z = objetos[objetoSelecionado].position.z + 0.001f;
+				break;
+
+			case '-':
+				objetos[objetoSelecionado].scale = objetos[objetoSelecionado].scale - 0.0001f;
+				break;
+
+			case '+':
+				objetos[objetoSelecionado].scale = objetos[objetoSelecionado].scale + 0.0001f;
+				break;
 		}
 
 		for (int i = 0; i < objetos.size(); i++) {
@@ -163,6 +195,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 				}
 				break;
 
+			case GLFW_KEY_SPACE:
+				rotateChar = NULL;
+				break;
+			}
+	}
+
+	else {
+		switch (key) {
 			case GLFW_KEY_X:
 				rotateChar = 'X';
 				break;
@@ -174,29 +214,55 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			case GLFW_KEY_Z:
 				rotateChar = 'Z';
 				break;
+
+			case GLFW_KEY_1:
+				rotateChar = '1';
+				break;
+
+			case GLFW_KEY_2:
+				rotateChar = '2';
+				break;
+
+			case GLFW_KEY_3:
+				rotateChar = '3';
+				break;
+
+			case GLFW_KEY_4:
+				rotateChar = '4';
+				break;
+
+			case GLFW_KEY_5:
+				rotateChar = '5';
+				break;
+
+			case GLFW_KEY_6:
+				rotateChar = '6';
+				break;
+
+			case GLFW_KEY_EQUAL:
+				rotateChar = '+';
+				break;
+
+			case GLFW_KEY_MINUS:
+				rotateChar = '-';
+				break;
+
+			case GLFW_KEY_W:
+				cameraPos += cameraSpeed * cameraFront;
+				break;
+
+			case GLFW_KEY_S:
+				cameraPos -= cameraSpeed * cameraFront;
+				break;
+
+			case GLFW_KEY_A:
+				cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+				break;
+
+			case GLFW_KEY_D:
+				cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+				break;
 			}
-	}
-
-	else {
-		switch (key) {
-
-
-		case GLFW_KEY_W:
-			cameraPos += cameraSpeed * cameraFront;
-			break;
-
-		case GLFW_KEY_S:
-			cameraPos -= cameraSpeed * cameraFront;
-			break;
-
-		case GLFW_KEY_A:
-			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-			break;
-
-		case GLFW_KEY_D:
-			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-			break;
-		}
 	}
 }
 
