@@ -19,7 +19,10 @@ using namespace std;
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void operacoesTeclado();
-GLint iniciarParametros(Shader* shader, int width, int height);
+void iniciarParametros(Shader* shader, int width, int height, GLint viewLoc);
+void iniciarObjetos(Shader* shader, Json::Value json);
+void iniciarAnimacao(Shader* shader, Json::Value objetoJson);
+void iniciarCameraELuz(Shader* shader, int width, int height, Json::Value json);
 
 const GLuint WIDTH = 1000, HEIGHT = 1000;
 
@@ -57,7 +60,9 @@ int main() {
 	Shader shader("Hello3D.vs", "Hello3D.fs");
 	shader.use();
 
-	GLint viewLoc = iniciarParametros(&shader, width, height);
+	GLint viewLoc = glGetUniformLocation(shader.ID, "view");
+
+	iniciarParametros(&shader, width, height, viewLoc);
 
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(glGetUniformLocation(shader.ID, "colorBuffer"), 0);
@@ -278,13 +283,13 @@ void operacoesTeclado() {
 		}
 }
 
-GLint iniciarParametros(Shader* shader, int width, int height) {
+void iniciarParametros(Shader* shader, int width, int height, GLint viewLoc) {
 
 	ifstream inputFile("./parametros.json");
 
 	if (!inputFile.is_open()) {
 		cout << "Não foi possivel abrir o arquivo parametros.json" << endl;
-		return -1;
+		return;
 	}
 
 	string conteudo((istreambuf_iterator<char>(inputFile)), istreambuf_iterator<char>());
@@ -301,8 +306,14 @@ GLint iniciarParametros(Shader* shader, int width, int height) {
 
 	if (!parsingSuccessful) {
 		cout << "Não foi possivel fazer o parse do JSON: " << parseErrors << endl;
-		return -1;
+		return;
 	}
+
+	iniciarObjetos(shader, json);
+	iniciarCameraELuz(shader, width, height, json);
+}
+
+void iniciarObjetos(Shader* shader, Json::Value json) {
 
 	for (const auto& objetoJson : json["objetos"]) {
 		string arquivo = objetoJson["arquivo"].asString();
@@ -313,11 +324,20 @@ GLint iniciarParametros(Shader* shader, int width, int height) {
 		float anguloRotacao = transformacao["anguloRotacao"].asFloat();
 
 		Object obj(arquivo, shader, glm::vec3(posicao[0].asFloat(), posicao[1].asFloat(), posicao[2].asFloat()),
-			glm::vec3(escala[0].asFloat(), escala[1].asFloat(), escala[2].asFloat()), 
+			glm::vec3(escala[0].asFloat(), escala[1].asFloat(), escala[2].asFloat()),
 			anguloRotacao, glm::vec3(rotacao[0].asFloat(), rotacao[1].asFloat(), rotacao[2].asFloat()));
+
+		iniciarAnimacao(shader, objetoJson);
 
 		objetos.push_back(obj);
 	}
+}
+
+void iniciarAnimacao(Shader* shader, Json::Value objetoJson) {
+
+}
+
+void iniciarCameraELuz(Shader* shader, int width, int height, Json::Value json) {
 
 	Json::Value posicaoLuz = json["iluminacao"]["posicao"];
 	Json::Value corLuz = json["iluminacao"]["cor"];
@@ -328,7 +348,6 @@ GLint iniciarParametros(Shader* shader, int width, int height) {
 	glm::mat4 model = glm::mat4(1);
 	GLint modelLoc = glGetUniformLocation((*shader).ID, "model");
 
-	//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	glUniformMatrix4fv(modelLoc, 1, FALSE, glm::value_ptr(model));
 
 	Json::Value camera = json["camera"];
@@ -342,13 +361,10 @@ GLint iniciarParametros(Shader* shader, int width, int height) {
 	cameraUp = glm::vec3(upCamera[0].asFloat(), upCamera[1].asFloat(), upCamera[2].asFloat());
 	cameraSpeed = camera["velocidade"].asFloat();
 
-	GLint viewLoc = glGetUniformLocation((*shader).ID, "view");
-
 	Json::Value frustum = camera["frustum"];
 
 	glm::mat4 projection = glm::perspective(glm::radians(45.0f), (GLfloat)width / (GLfloat)height, frustum["proximidade"].asFloat(), frustum["distancia"].asFloat());
 	GLint projLoc = glGetUniformLocation((*shader).ID, "projection");
-	glUniformMatrix4fv(projLoc, 1, FALSE, glm::value_ptr(projection));
 
-	return viewLoc;
+	glUniformMatrix4fv(projLoc, 1, FALSE, glm::value_ptr(projection));
 }

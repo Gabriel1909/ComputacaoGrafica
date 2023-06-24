@@ -10,14 +10,12 @@
       },
       "animacao": {
         "tipo": "trajetoria",
-        "parametros": {
-          "curva": "bezier",
-          "pontosDeControle": [
-            [ 0.0, 0.0, 0.0 ],
-            [ 1.0, 1.0, 1.0 ],
-            [ 2.0, 0.0, 0.0 ]
-          ]
-        }
+		"curva": "bezier",
+		"pontosDeControle": [
+			[ 0.0, 0.0, 0.0 ],
+			[ 1.0, 1.0, 1.0 ],
+			[ 2.0, 0.0, 0.0 ]
+		]
       }
     },
     {
