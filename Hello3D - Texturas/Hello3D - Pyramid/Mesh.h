@@ -1,6 +1,5 @@
 #pragma once
 
-//GLM
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -10,10 +9,14 @@
 
 class Mesh {
 public:
-	Mesh() {}
-	~Mesh() {}
-	void initialize(GLuint VAO, int nVertices, Shader *shader, GLuint texID, Material material);
-	void update();
+	Mesh(GLuint VAO, int nVertices, Shader* shader, GLuint texID, Material material) {
+		this->VAO = VAO;
+		this->nVertices = nVertices;
+		this->shader = shader;
+		this->texID = texID;
+		this->material = material;
+	}
+	
 	void draw();
 
 protected:

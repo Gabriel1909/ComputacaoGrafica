@@ -1,15 +1,5 @@
 #include "Object.h"
 
-void Object::initialize(string filePath, Shader* shader, glm::vec3 position, glm::vec3 scale, float angle, glm::vec3 axis) {
-	this->position = position;
-	this->scale = scale;
-	this->angle = angle;
-	this->axis = axis;
-	this->shader = shader;
-
-	loadObj(filePath);
-}
-
 void Object::update() {
 	glm::mat4 model = glm::mat4(1);
 	model = glm::translate(model, position);
@@ -25,8 +15,7 @@ void Object::draw() {
 }
 
 void Object::loadObj(string filePath) {
-	ifstream inputFile;
-	inputFile.open(filePath);
+	ifstream inputFile(filePath);
 	string basePath = filePath.substr(0, filePath.find_last_of("/") + 1);
 
 	vector <GLfloat> vertbuffer;
@@ -38,167 +27,167 @@ void Object::loadObj(string filePath) {
 	bool initializeGroup = false;
 	string materialName;
 
-	if (inputFile.is_open()) {
-		char line[100];
-		string sline;
+	if (!inputFile.is_open()) {
+		cout << "Não foi possivel abrir o arquivo obj: " << filePath << endl;
+		return;
+	}
 
-		while (!inputFile.eof()) {
-			inputFile.getline(line, 100);
-			sline = line;
+	char line[100];
+	string sline;
 
-			string word;
-			istringstream ssline(sline);
+	while (!inputFile.eof()) {
+		inputFile.getline(line, 100);
+		sline = line;
 
-			ssline >> word;
+		string word;
+		istringstream ssline(sline);
 
-			if (word == "mtllib") {
-				string mtlPath;
-				ssline >> mtlPath;
-				loadMTL(basePath + mtlPath);
-			}
+		ssline >> word;
 
-			if (word == "usemtl") {
-				ssline >> materialName;
-			}
-
-			if (word == "v" || inputFile.eof())	{
-
-				if (initializeGroup) {
-
-					Material material = materiais[materialName];
-
-					if (vertbuffer.size()) {
-						initializeGroup = false;
-						Mesh m;
-						int nVertices;
-						GLuint VAO = generateVAO(vertbuffer, nVertices);
-						GLuint texID = generateTexture(material.texName);
-						m.initialize(VAO, nVertices, shader, texID, material);
-						grupos.push_back(m);
-
-						vertbuffer.clear();
-					}
-					
-					initializeGroup = false;
-				}
-
-				glm::vec3 v, color;
-				ssline >> v.x >> v.y >> v.z;
-				color.r = 1.0; color.g = 0.0; color.b = 0.0;
-				vertices.push_back(v);
-				colors.push_back(color);
-			} else if (word == "vt") {
-				glm::vec2 vt;
-				ssline >> vt.s >> vt.t;
-				texCoord.push_back(vt);
-			} else if (word == "vn") {
-				glm::vec3 vn;
-				ssline >> vn.x >> vn.y >> vn.z;
-				normals.push_back(vn);
-			} else if (word == "g") {
-				initializeGroup = true;
-			} else if (word == "f")	{
-				string tokens[3];
-				for (int i = 0; i < 3; i++)	{
-					ssline >> tokens[i];
-					int pos = tokens[i].find("/");
-					string token = tokens[i].substr(0, pos);
-					int index = atoi(token.c_str()) - 1;
-					
-					vertbuffer.push_back(vertices[index].x);
-					vertbuffer.push_back(vertices[index].y);
-					vertbuffer.push_back(vertices[index].z);
-					vertbuffer.push_back(colors[index].r);
-					vertbuffer.push_back(colors[index].g);
-					vertbuffer.push_back(colors[index].b);
-
-					tokens[i] = tokens[i].substr(pos + 1);
-					pos = tokens[i].find("/");
-					token = tokens[i].substr(0, pos);
-					int indexT = atoi(token.c_str()) - 1;
-
-					vertbuffer.push_back(texCoord[indexT].s);
-					vertbuffer.push_back(texCoord[indexT].t);
-
-					tokens[i] = tokens[i].substr(pos + 1);
-					token = tokens[i].substr(0, pos);
-					int indexN = atoi(token.c_str()) - 1;
-
-					vertbuffer.push_back(normals[indexN].x);
-					vertbuffer.push_back(normals[indexN].y);
-					vertbuffer.push_back(normals[indexN].z);
-				}
-			}
+		if (word == "mtllib") {
+			string mtlPath;
+			ssline >> mtlPath;
+			loadMTL(basePath + mtlPath);
 		}
 
-		inputFile.close();
-	} else {
-		cout << "Não foi possivel abrir o arquivo " << filePath << endl;
+		if (word == "usemtl") {
+			ssline >> materialName;
+		}
+
+		if (word == "v" || inputFile.eof())	{
+
+			if (initializeGroup) {
+
+				Material material = materiais[materialName];
+
+				if (vertbuffer.size()) {
+					initializeGroup = false;
+					int nVertices;
+					GLuint VAO = generateVAO(vertbuffer, nVertices);
+					GLuint texID = generateTexture(material.texName);
+					Mesh m(VAO, nVertices, shader, texID, material);
+					grupos.push_back(m);
+
+					vertbuffer.clear();
+				}
+					
+				initializeGroup = false;
+			}
+
+			glm::vec3 v, color;
+			ssline >> v.x >> v.y >> v.z;
+			color.r = 1.0; color.g = 0.0; color.b = 0.0;
+			vertices.push_back(v);
+			colors.push_back(color);
+		} else if (word == "vt") {
+			glm::vec2 vt;
+			ssline >> vt.s >> vt.t;
+			texCoord.push_back(vt);
+		} else if (word == "vn") {
+			glm::vec3 vn;
+			ssline >> vn.x >> vn.y >> vn.z;
+			normals.push_back(vn);
+		} else if (word == "g") {
+			initializeGroup = true;
+		} else if (word == "f")	{
+			string tokens[3];
+			for (int i = 0; i < 3; i++)	{
+				ssline >> tokens[i];
+				int pos = tokens[i].find("/");
+				string token = tokens[i].substr(0, pos);
+				int index = atoi(token.c_str()) - 1;
+					
+				vertbuffer.push_back(vertices[index].x);
+				vertbuffer.push_back(vertices[index].y);
+				vertbuffer.push_back(vertices[index].z);
+				vertbuffer.push_back(colors[index].r);
+				vertbuffer.push_back(colors[index].g);
+				vertbuffer.push_back(colors[index].b);
+
+				tokens[i] = tokens[i].substr(pos + 1);
+				pos = tokens[i].find("/");
+				token = tokens[i].substr(0, pos);
+				int indexT = atoi(token.c_str()) - 1;
+
+				vertbuffer.push_back(texCoord[indexT].s);
+				vertbuffer.push_back(texCoord[indexT].t);
+
+				tokens[i] = tokens[i].substr(pos + 1);
+				token = tokens[i].substr(0, pos);
+				int indexN = atoi(token.c_str()) - 1;
+
+				vertbuffer.push_back(normals[indexN].x);
+				vertbuffer.push_back(normals[indexN].y);
+				vertbuffer.push_back(normals[indexN].z);
+			}
+		}
 	}
+
+	inputFile.close();
 }
 
 void Object::loadMTL(string filePath) {
 
-	ifstream inputFile;
-	inputFile.open(filePath);
+	ifstream inputFile(filePath);
 	string basePath = filePath.substr(0, filePath.find_last_of("/") + 1);
 
-	if (inputFile.is_open()) {
-		char line[100];
-		string sline;
-
-		Material currentMaterial;
-		bool newMaterial = false;
-
-		while (!inputFile.eof()) {
-			inputFile.getline(line, 100);
-			sline = line;
-
-			string word;
-			istringstream ssline(sline);
-
-			ssline >> word;
-
-			if (word == "newmtl") {
-
-				if (newMaterial) {
-					materiais[currentMaterial.name] = currentMaterial;
-				}
-
-				string materialName;
-				ssline >> materialName;
-
-				currentMaterial.initialize(materialName);
-				newMaterial = true;
-			} else if (word == "Ka") {
-				float ka;
-				ssline >> ka;
-				currentMaterial.ka = ka;
-			} else if (word == "Kd") {
-				float kd;
-				ssline >> kd;
-				currentMaterial.kd = kd;
-			} else if (word == "Ks") {
-				float ks;
-				ssline >> ks;
-				currentMaterial.ks = ks;
-			} else if (word == "d") {
-				float d;
-				ssline >> d;
-				currentMaterial.d = d;
-			} else if (word == "map_Kd") {
-				string texturePath;
-				ssline >> texturePath;
-				currentMaterial.texName = basePath + texturePath;
-			}
-		}
-
-		materiais[currentMaterial.name] = currentMaterial;
-
-		inputFile.close();
-	} else {
-		cout << "Não foi possível abrir o arquivo .mtl" << endl;
+	if (!inputFile.is_open()) {
+		cout << "Não foi possível abrir o arquivo mtl: " << filePath << endl;
+		return;
 	}
+
+	char line[100];
+	string sline;
+
+	Material currentMaterial;
+	bool newMaterial = false;
+
+	while (!inputFile.eof()) {
+		inputFile.getline(line, 100);
+		sline = line;
+
+		string word;
+		istringstream ssline(sline);
+
+		ssline >> word;
+
+		if (word == "newmtl") {
+
+			if (newMaterial) {
+				materiais[currentMaterial.name] = currentMaterial;
+			}
+
+			string materialName;
+			ssline >> materialName;
+
+			currentMaterial.initialize(materialName);
+			newMaterial = true;
+		} else if (word == "Ka") {
+			float ka;
+			ssline >> ka;
+			currentMaterial.ka = ka;
+		} else if (word == "Kd") {
+			float kd;
+			ssline >> kd;
+			currentMaterial.kd = kd;
+		} else if (word == "Ks") {
+			float ks;
+			ssline >> ks;
+			currentMaterial.ks = ks;
+		} else if (word == "d") {
+			float d;
+			ssline >> d;
+			currentMaterial.d = d;
+		} else if (word == "map_Kd") {
+			string texturePath;
+			ssline >> texturePath;
+			currentMaterial.texName = basePath + texturePath;
+		}
+	}
+
+	materiais[currentMaterial.name] = currentMaterial;
+
+	inputFile.close();
 }
 
 GLuint Object::generateVAO(vector<GLfloat> vertbuffer, int &nVertices) {

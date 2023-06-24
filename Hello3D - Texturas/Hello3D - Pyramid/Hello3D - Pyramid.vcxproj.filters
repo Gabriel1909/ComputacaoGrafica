@@ -61,5 +61,8 @@
     <None Include="Hello3D.fs">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="parametros.json">
+      <Filter>Arquivos de Recurso</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <json/json.h>
 
 using namespace std;
 
@@ -17,6 +18,8 @@ using namespace std;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void operacoesTeclado();
+void iniciarObjetos(Shader* shader);
 
 const GLuint WIDTH = 1000, HEIGHT = 1000;
 
@@ -57,7 +60,7 @@ int main() {
 	glm::mat4 model = glm::mat4(1);
 	GLint modelLoc = glGetUniformLocation(shader.ID, "model");
 
-	model = glm::rotate(model, /*(GLfloat)glfwGetTime()*/glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	glUniformMatrix4fv(modelLoc, 1, FALSE, glm::value_ptr(model));
 
 	glm::mat4 view = glm::lookAt(glm::vec3(0.0, 0.0, 3.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
@@ -71,11 +74,7 @@ int main() {
 	shader.setVec3("lightPos", -2.0f, 10.0f, 3.0f);
 	shader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
-	Object obj, obj2;
-	obj.initialize("../../3D_models/Pokemon/Pikachu.obj", &shader, glm::vec3(0.0, -3.0, -3.0));
-	obj2.initialize("../../3D_models/Suzanne/SuzanneTriTextured.obj", &shader, glm::vec3(3.0, 0.0, 0.0));
-	objetos.push_back(obj);
-	objetos.push_back(obj2);
+	iniciarObjetos(&shader);
 
 	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(glGetUniformLocation(shader.ID, "colorBuffer"), 0);
@@ -92,8 +91,6 @@ int main() {
 		glLineWidth(10);
 		glPointSize(20);
 		
-		float angle = (GLfloat)glfwGetTime() * 20;
-
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
@@ -103,54 +100,7 @@ int main() {
 
 		shader.setVec3("cameraPos", cameraPos.x, cameraPos.y, cameraPos.z);
 
-		switch (rotateChar) {
-			case 'X':
-				objetos[objetoSelecionado].angle = angle;
-				objetos[objetoSelecionado].axis = glm::vec3(1.0f, 0.0f, 0.0f);
-				break;
-
-			case 'Y':
-				objetos[objetoSelecionado].angle = angle;
-				objetos[objetoSelecionado].axis = glm::vec3(0.0f, 1.0f, 0.0f);
-				break;
-
-			case 'Z':
-				objetos[objetoSelecionado].angle = angle;
-				objetos[objetoSelecionado].axis = glm::vec3(0.0f, 0.0f, 1.0f);
-				break;
-
-			case '1':
-				objetos[objetoSelecionado].position.x = objetos[objetoSelecionado].position.x - 0.001f;
-				break;
-
-			case '2':
-				objetos[objetoSelecionado].position.x = objetos[objetoSelecionado].position.x + 0.001f;
-				break;
-
-			case '3':
-				objetos[objetoSelecionado].position.y = objetos[objetoSelecionado].position.y - 0.001f;
-				break;
-
-			case '4':
-				objetos[objetoSelecionado].position.y = objetos[objetoSelecionado].position.y + 0.001f;
-				break;
-
-			case '5':
-				objetos[objetoSelecionado].position.z = objetos[objetoSelecionado].position.z - 0.001f;
-				break;
-
-			case '6':
-				objetos[objetoSelecionado].position.z = objetos[objetoSelecionado].position.z + 0.001f;
-				break;
-
-			case '-':
-				objetos[objetoSelecionado].scale = objetos[objetoSelecionado].scale - 0.0001f;
-				break;
-
-			case '+':
-				objetos[objetoSelecionado].scale = objetos[objetoSelecionado].scale + 0.0001f;
-				break;
-		}
+		operacoesTeclado();
 
 		for (int i = 0; i < objetos.size(); i++) {
 			objetos[i].update();
@@ -290,4 +240,102 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	front.y = sin(glm::radians(pitch));
 	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 	cameraFront = glm::normalize(front);
+}
+
+void operacoesTeclado() {
+
+	float angle = (GLfloat)glfwGetTime() * 20;
+
+	switch (rotateChar) {
+		case 'X':
+			objetos[objetoSelecionado].angle = angle;
+			objetos[objetoSelecionado].axis = glm::vec3(1.0f, 0.0f, 0.0f);
+			break;
+
+		case 'Y':
+			objetos[objetoSelecionado].angle = angle;
+			objetos[objetoSelecionado].axis = glm::vec3(0.0f, 1.0f, 0.0f);
+			break;
+
+		case 'Z':
+			objetos[objetoSelecionado].angle = angle;
+			objetos[objetoSelecionado].axis = glm::vec3(0.0f, 0.0f, 1.0f);
+			break;
+
+		case '1':
+			objetos[objetoSelecionado].position.x = objetos[objetoSelecionado].position.x - 0.001f;
+			break;
+
+		case '2':
+			objetos[objetoSelecionado].position.x = objetos[objetoSelecionado].position.x + 0.001f;
+			break;
+
+		case '3':
+			objetos[objetoSelecionado].position.y = objetos[objetoSelecionado].position.y - 0.001f;
+			break;
+
+		case '4':
+			objetos[objetoSelecionado].position.y = objetos[objetoSelecionado].position.y + 0.001f;
+			break;
+
+		case '5':
+			objetos[objetoSelecionado].position.z = objetos[objetoSelecionado].position.z - 0.001f;
+			break;
+
+		case '6':
+			objetos[objetoSelecionado].position.z = objetos[objetoSelecionado].position.z + 0.001f;
+			break;
+
+		case '-':
+			objetos[objetoSelecionado].scale = objetos[objetoSelecionado].scale - 0.0001f;
+			break;
+
+		case '+':
+			objetos[objetoSelecionado].scale = objetos[objetoSelecionado].scale + 0.0001f;
+			break;
+		}
+}
+
+void iniciarObjetos(Shader* shader) {
+
+	ifstream inputFile("./parametros.json");
+
+	if (!inputFile.is_open()) {
+		cout << "Não foi possivel abrir o arquivo parametros.json" << endl;
+		return;
+	}
+
+	string conteudo((istreambuf_iterator<char>(inputFile)), istreambuf_iterator<char>());
+	inputFile.close();
+
+	Json::Value json;
+
+	Json::CharReaderBuilder builder;
+	Json::CharReader* reader = builder.newCharReader();
+	std::string parseErrors;
+	bool parsingSuccessful = reader->parse(conteudo.c_str(), conteudo.c_str() + conteudo.size(), &json, &parseErrors);
+
+	delete reader;
+
+	if (!parsingSuccessful) {
+		cout << "Não foi possivel fazer o parse do JSON: " << parseErrors << endl;
+		return;
+	}
+
+	const Json::Value objetosJson = json["objetos"];
+
+	for (const auto& objetoJson : objetosJson) {
+		string arquivo = objetoJson["arquivo"].asString();
+		Json::Value transformacao = objetoJson["transformacaoInicial"];
+		Json::Value posicao = transformacao["posicao"];
+		Json::Value escala = transformacao["escala"];
+		Json::Value rotacao = transformacao["rotacao"];
+		float anguloRotacao = transformacao["anguloRotacao"].asFloat();
+
+		Object obj(arquivo, shader, glm::vec3(posicao[0].asFloat(), posicao[1].asFloat(), posicao[2].asFloat()),
+			glm::vec3(escala[0].asFloat(), escala[1].asFloat(), escala[2].asFloat()), 
+			anguloRotacao, glm::vec3(rotacao[0].asFloat(), rotacao[1].asFloat(), rotacao[2].asFloat()));
+
+		objetos.push_back(obj);
+	}
 }

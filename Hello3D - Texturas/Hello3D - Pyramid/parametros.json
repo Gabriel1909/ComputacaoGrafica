@@ -1,0 +1,58 @@
+{
+  "objetos": [
+    {
+      "arquivo": "../../3D_models/Pokemon/Pikachu.obj",
+      "transformacaoInicial": {
+        "posicao": [ 0.0, -3.0, -3.0 ],
+        "escala": [ 1.0, 1.0, 1.0 ],
+        "rotacao": [ 0.0, 0.0, 1.0 ],
+		"anguloRotacao": 0.0
+      },
+      "animacao": {
+        "tipo": "trajetoria",
+        "parametros": {
+          "curva": "bezier",
+          "pontosDeControle": [
+            [ 0.0, 0.0, 0.0 ],
+            [ 1.0, 1.0, 1.0 ],
+            [ 2.0, 0.0, 0.0 ]
+          ]
+        }
+      }
+    },
+    {
+      "arquivo": "../../3D_models/Suzanne/SuzanneTriTextured.obj",
+      "transformacaoInicial": {
+        "posicao": [ 3.0, 0.0, 0.0 ],
+        "escala": [ 1.0, 1.0, 1.0 ],
+        "rotacao": [ 0.0, 0.0, 1.0 ],
+		"anguloRotacao": 0.0
+      }
+    }
+  ],
+  "iluminacao": [
+    {
+      "tipo": "ponto",
+      "posicao": [ 10.0, 10.0, 10.0 ],
+      "cor": [ 1.0, 1.0, 1.0 ]
+    },
+    {
+      "tipo": "direcional",
+      "direcao": [ 0.0, -1.0, 0.0 ],
+      "cor": [ 0.8, 0.8, 0.8 ]
+    }
+  ],
+  "camera": {
+    "posicao": [ 0.0, 0.0, 5.0 ],
+    "alvo": [ 0.0, 0.0, 0.0 ],
+    "acima": [ 0.0, 1.0, 0.0 ],
+    "frustum": {
+      "esquerda": -1.0,
+      "direita": 1.0,
+      "inferior": -1.0,
+      "superior": 1.0,
+      "proximidade": 1.0,
+      "distancia": 100.0
+    }
+  }
+}

@@ -36,6 +36,7 @@
   <ItemGroup>
     <None Include="Hello3D.fs" />
     <None Include="Hello3D.vs" />
+    <None Include="parametros.json" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -108,7 +109,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../dependencies/glfw-3.3.4.bin.WIN32/include;../../dependencies/GLAD/include;../../Common/include;../../dependencies/glm</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../dependencies/jsoncpp_x86-windows/include;../../dependencies/glfw-3.3.4.bin.WIN32/include;../../dependencies/GLAD/include;../../Common/include;../../dependencies/glm</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
