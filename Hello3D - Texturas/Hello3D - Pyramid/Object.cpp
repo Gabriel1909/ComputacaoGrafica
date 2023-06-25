@@ -3,11 +3,15 @@
 void Object::update() {
 	glm::mat4 model = glm::mat4(1);
 
-	glm::vec3 pointOnCurve = curve.getPointOnCurve(i);
+	if (curveName != "") {
+		glm::vec3 pointOnCurve = curve.getPointOnCurve(i);
 
-	i = (i + 1) % curve.getNbCurvePoints();
+		model = glm::translate(model, pointOnCurve);
 
-	model = glm::translate(model, position + pointOnCurve);
+		i = (i + 1) % curve.getNbCurvePoints();
+	}
+
+	model = glm::translate(model, position);
 	model = glm::rotate(model, glm::radians(angle), axis);
 	model = glm::scale(model, scale);
 	shader->setMat4("model", glm::value_ptr(model));

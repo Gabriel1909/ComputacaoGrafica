@@ -25,7 +25,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void operacoesTeclado();
 void iniciarParametros(Shader* shader, int width, int height, GLint viewLoc);
 void iniciarObjetos(Shader* shader, Json::Value json);
-vector<glm::vec3> generateUnisinosPointsSet(); 
 void iniciarCameraELuz(Shader* shader, int width, int height, Json::Value json);
 
 const GLuint WIDTH = 1000, HEIGHT = 1000;
@@ -321,7 +320,7 @@ void iniciarObjetos(Shader* shader, Json::Value json) {
 
 	for (const auto& objetoJson : json["objetos"]) {
 		string arquivo = objetoJson["arquivo"].asString();
-		Json::Value transformacao = objetoJson["transformacaoInicial"];
+		Json::Value transformacao = objetoJson["transformacoesIniciais"];
 		Json::Value posicao = transformacao["posicao"];
 		Json::Value escala = transformacao["escala"];
 		Json::Value rotacao = transformacao["rotacao"];
@@ -333,104 +332,46 @@ void iniciarObjetos(Shader* shader, Json::Value json) {
 
 		Json::Value animacao = objetoJson["animacao"];
 
-		if (!animacao.isNull()) {
-			Bezier bezier;
+		if (!animacao.isNull() && !animacao["curva"].isNull() && animacao["curva"].asString() != "") {
 
-			bezier.setControlPoints(generateUnisinosPointsSet());
-			bezier.setShader(shader);
-			bezier.generateCurve(500);
+			char curvaJson = animacao["curva"].asString()[0];
 
-			obj.curve = bezier;
+			int pontosPorSegmento = animacao["pontosPorSegmento"].asInt();
+
+			vector<glm::vec3> pontosControle;
+
+			for (const auto& pontoControle : animacao["pontosDeControle"]) {
+				pontosControle.push_back(glm::vec3(pontoControle[0].asFloat(), pontoControle[1].asFloat(), pontoControle[2].asFloat()));
+			}
+
+			if (curvaJson == 'b') {
+				Bezier bezier;
+				bezier.setControlPoints(pontosControle);
+				bezier.setShader(shader);
+				bezier.generateCurve(pontosPorSegmento);
+
+				obj.curve = bezier;
+				obj.curveName = "bezier";
+			} else if (curvaJson == 'c') {
+				CatmullRom catmullRom;
+				catmullRom.setControlPoints(pontosControle);
+				catmullRom.setShader(shader);
+				catmullRom.generateCurve(pontosPorSegmento);
+
+				obj.curve = catmullRom;
+				obj.curveName = "catmullRom";
+			} else if (curvaJson == 'h') {
+				Hermite hermite;
+				hermite.setControlPoints(pontosControle);
+				hermite.setShader(shader);
+				hermite.generateCurve(pontosPorSegmento);
+				obj.curve = hermite;
+				obj.curveName = "hermite";
+			}
 		}
 
 		objetos.push_back(obj);
 	}
-}
-
-vector<glm::vec3> generateUnisinosPointsSet() {
-
-	float vertices[] = {
-			-0.262530, 0.376992, 0.000000,
-			-0.262530, 0.377406, 0.000000,
-			-0.262530, 0.334639, 0.000000,
-			-0.262530, 0.223162, 0.000000,
-			-0.262530, 0.091495, 0.000000,
-			-0.262371, -0.006710, 0.000000,
-			-0.261258, -0.071544, -0.000000,
-			-0.258238, -0.115777, -0.000000,
-			-0.252355, -0.149133, -0.000000,
-			-0.242529, -0.179247, -0.000000,
-			-0.227170, -0.208406, -0.000000,
-			-0.205134, -0.237216, -0.000000,
-			-0.177564, -0.264881, -0.000000,
-			-0.146433, -0.289891, -0.000000,
-			-0.114730, -0.309272, -0.000000,
-			-0.084934, -0.320990, -0.000000,
-			-0.056475, -0.328224, -0.000000,
-			-0.028237, -0.334170, -0.000000,
-			0.000000, -0.336873, -0.000000,
-			0.028237, -0.334170, -0.000000,
-			0.056475, -0.328224, -0.000000,
-			0.084934, -0.320990, -0.000000,
-			0.114730, -0.309272, -0.000000,
-			0.146433, -0.289891, -0.000000,
-			0.177564, -0.264881, -0.000000,
-			0.205134, -0.237216, -0.000000,
-			0.227170, -0.208406, -0.000000,
-			0.242529, -0.179247, -0.000000,
-			0.252355, -0.149133, -0.000000,
-			0.258238, -0.115777, -0.000000,
-			0.261258, -0.071544, -0.000000,
-			0.262371, -0.009704, 0.000000,
-			0.262530, 0.067542, 0.000000,
-			0.262769, 0.153238, 0.000000,
-			0.264438, 0.230348, 0.000000,
-			0.268678, 0.284286, 0.000000,
-			0.275462, 0.320338, 0.000000,
-			0.284631, 0.347804, 0.000000,
-			0.296661, 0.372170, 0.000000,
-			0.311832, 0.396628, 0.000000,
-			0.328990, 0.419020, 0.000000,
-			0.347274, 0.436734, 0.000000,
-			0.368420, 0.450713, 0.000000,
-			0.393395, 0.462743, 0.000000,
-			0.417496, 0.474456, 0.000000,
-			0.436138, 0.487056, 0.000000,
-			0.450885, 0.500213, 0.000000,
-			0.464572, 0.513277, 0.000000,
-			0.478974, 0.525864, 0.000000,
-			0.494860, 0.538133, 0.000000,
-			0.510031, 0.552151, 0.000000,
-			0.522127, 0.570143, 0.000000,
-			0.531124, 0.593065, 0.000000,
-			0.537629, 0.620809, 0.000000,
-			0.542465, 0.650303, 0.000000,
-			0.546798, 0.678259, 0.000000,
-			0.552959, 0.703513, 0.000000,
-			0.563121, 0.725745, 0.000000,
-			0.577656, 0.745911, 0.000000,
-			0.596563, 0.764858, 0.000000,
-			0.620160, 0.781738, 0.000000,
-			0.648302, 0.795385, 0.000000,
-			0.678670, 0.805057, 0.000000,
-			0.710336, 0.810741, 0.000000,
-			0.750111, 0.814914, 0.000000,
-			0.802994, 0.819945, 0.000000,
-			0.860771, 0.825435, 0.000000,
-	};
-
-	vector <glm::vec3> uniPoints;
-
-	for (int i = 0; i < 67 * 3; i += 3)	{
-		glm::vec3 point;
-		point.x = vertices[i];
-		point.y = vertices[i + 1];
-		point.z = 0.0;
-
-		uniPoints.push_back(point);
-	}
-
-	return uniPoints;
 }
 
 void iniciarCameraELuz(Shader* shader, int width, int height, Json::Value json) {
