@@ -45,6 +45,7 @@
     <None Include="Hello3D.fs" />
     <None Include="Hello3D.vs" />
     <None Include="parametros.json" />
+    <None Include="README.md" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
